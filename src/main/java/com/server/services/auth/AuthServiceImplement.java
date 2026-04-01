@@ -9,6 +9,8 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +71,13 @@ public class AuthServiceImplement implements AuthService {
     }
 
     @Override
-    public User authUser(String token) {
+    public User authUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
+    }
+
+    @Override
+    public User userFromToken(String token) {
 
         Claims claims = parseToken(token);
         String userId = claims.get("user_id", String.class);

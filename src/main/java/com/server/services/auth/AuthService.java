@@ -10,5 +10,6 @@ public interface  AuthService {
         void logout(String refreshToken);
     LoginRecord register(String email, String password);
      Claims parseToken(String token);
-     User authUser(String token);
+     User userFromToken(String token);
+     User authUser();
 }
