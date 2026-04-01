@@ -1,4 +1,4 @@
-package com.server.services.records;
+package com.server.services.auth.records;
 
 import com.server.models.entities.User;
 

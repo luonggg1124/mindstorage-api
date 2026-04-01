@@ -1,4 +1,4 @@
-package com.server.services;
+package com.server.services.auth;
 
 import java.util.Date;
 import java.util.Optional;
@@ -10,19 +10,22 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.server.cache.AuthCache;
 import com.server.exceptions.BadRequestException;
 import com.server.exceptions.NotFoundException;
 import com.server.models.entities.User;
 import com.server.repositories.user.UserRepository;
-import com.server.services.records.GenerateTokenRecord;
-import com.server.services.records.LoginRecord;
+import com.server.services.auth.records.GenerateTokenRecord;
+import com.server.services.auth.records.LoginRecord;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 
+@Service
 @RequiredArgsConstructor
 public class AuthServiceImplement implements AuthService {
 
@@ -44,6 +47,7 @@ public class AuthServiceImplement implements AuthService {
         return new GenerateTokenRecord(accessToken, token);
 
     }
+
     @Override
     public LoginRecord register(String email, String password) {
         User user = new User();
@@ -55,21 +59,55 @@ public class AuthServiceImplement implements AuthService {
     }
 
     @Override
-    public LoginRecord login(String email, String password){
+    public Claims parseToken(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    @Override
+    public User authUser(String token) {
+
+        Claims claims = parseToken(token);
+        String userId = claims.get("user_id", String.class);
+        Object cached = redisTemplate.opsForValue().get(AuthCache.userKey(userId));
+        if (cached instanceof User cachedUser) {
+            return cachedUser;
+        }
+
+        // Fallback to database and re-cache
+        User user = userRepository.findById(Long.parseLong(userId))
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        redisTemplate.opsForValue().set(
+                AuthCache.userKey(userId),
+                user,
+                AuthCache.ACCESS_EXPIRATION,
+                TimeUnit.MILLISECONDS);
+
+        return user;
+    }
+
+    @Override
+    public LoginRecord login(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
-        if(userOpt.isEmpty()){
+        if (userOpt.isEmpty()) {
             throw new NotFoundException("User not found");
         }
         User user = userOpt.get();
-        if(!passwordEncoder.matches(password, user.getPassword())){
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadRequestException("Invalid password");
         }
         GenerateTokenRecord tokenRecord = generateToken(user);
         return new LoginRecord(tokenRecord.accessToken(), tokenRecord.refreshToken(), user);
     }
+
     @Override
     public void logout(String refreshToken) {
-        if(refreshToken == null || refreshToken.isEmpty()) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
             return;
         }
         String key = AuthCache.refreshKey(refreshToken);

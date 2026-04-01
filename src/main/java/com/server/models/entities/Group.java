@@ -27,7 +27,7 @@ import lombok.Setter;
 public class Group extends Timestamp {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     @Column(name="name", nullable = false)
     private String name;
