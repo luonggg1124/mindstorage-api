@@ -35,6 +35,12 @@ public class Group extends Timestamp {
     @Column(name="embedding", nullable = false, columnDefinition = "vector(1536)")
     private float[] embedding;
 
+    @Column(name="description")
+    private String description;
+
+    @Column(name="is_deleted")
+    private Boolean isDeleted;
+
     @ManyToOne
     @JoinColumn(name="space_id")
     private Space space;

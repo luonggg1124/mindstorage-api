@@ -19,4 +19,6 @@ public abstract class Timestamp {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+
 }
