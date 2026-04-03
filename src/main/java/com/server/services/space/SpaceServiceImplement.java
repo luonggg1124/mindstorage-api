@@ -19,6 +19,6 @@ public class SpaceServiceImplement implements SpaceService {
     @Override
     public List<Space> getAllUserSpaces() {
         User currentUser = authService.authUser();
-        return spaceRepository.findByOwnerId(currentUser.getId());
+        return spaceRepository.findByCreator_Id(currentUser.getId());
     }
 }

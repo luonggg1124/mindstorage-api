@@ -10,6 +10,7 @@ public class AuthCache {
     public static final String TOKEN_ACCESS_KEY = "t_a";
     public static final String TOKEN_REFRESH_KEY= "t_r";
     public static final String USER_KEY = "user";
+    public static final String VERIFY_EMAIL_KEY = "verify_email";
     @Value("${jwt.access.expiration}")
     private Long accessExpiration;
 
@@ -27,5 +28,8 @@ public class AuthCache {
 
     public static String userKey(String userId){
         return USER_KEY + ":" + userId;
+    }
+    public static String verifyEmailKey(String session){
+        return VERIFY_EMAIL_KEY + ":" + session;
     }
 }

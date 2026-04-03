@@ -2,6 +2,7 @@ package com.server.services.auth;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +22,7 @@ import com.server.models.entities.User;
 import com.server.repositories.user.UserRepository;
 import com.server.services.auth.records.GenerateTokenRecord;
 import com.server.services.auth.records.LoginRecord;
+import com.server.services.auth.records.VerifyEmailRecord;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -36,6 +38,7 @@ public class AuthServiceImplement implements AuthService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final RedisTemplate<String, Object> redisTemplate;
+    private final Random random = new Random();
 
     private GenerateTokenRecord generateToken(User user) {
         Date now = new Date();
@@ -49,13 +52,46 @@ public class AuthServiceImplement implements AuthService {
         return new GenerateTokenRecord(accessToken, token);
 
     }
+    
 
+    public VerifyEmailRecord sendVerificationEmail(String email){
+        // In a real implementation, you would send an email here
+        String session = UUID.randomUUID().toString();
+        String code = String.format("%06d", random.nextInt(1_000_000));
+        redisTemplate.opsForValue().set(AuthCache.verifyEmailKey(session), code, 5, TimeUnit.MINUTES);
+        return new VerifyEmailRecord(session);
+    }
+
+    
     @Override
-    public LoginRecord register(String email, String password) {
+    public LoginRecord register(
+            String email,
+            String username,
+            String password,
+            String fullName,
+            String session,
+            String code
+    ) {
+        Object cached = redisTemplate.opsForValue().get(AuthCache.verifyEmailKey(session));
+        if (!(cached instanceof String cachedCode)) {
+            throw new BadRequestException("Verification session expired or invalid");
+        }
+        if (!cachedCode.equals(code)) {
+            throw new BadRequestException("Invalid verification code");
+        }
+
+        if (userRepository.findByEmailOrUsername(email, username).isPresent()) {
+            throw new BadRequestException("Email or username already exists");
+        }
+
         User user = new User();
         user.setEmail(email);
+        user.setUsername(username);
+        user.setFullName(fullName == null ? "" : fullName);
+        user.setVerified(true);
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
+        redisTemplate.delete(AuthCache.verifyEmailKey(session));
         GenerateTokenRecord tokenRecord = generateToken(user);
         return new LoginRecord(tokenRecord.accessToken(), tokenRecord.refreshToken(), user);
     }
@@ -100,8 +136,8 @@ public class AuthServiceImplement implements AuthService {
     }
 
     @Override
-    public LoginRecord login(String email, String password) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
+    public LoginRecord login(String usernameOrEmail, String password) {
+        Optional<User> userOpt = userRepository.findByEmailOrUsername(usernameOrEmail, usernameOrEmail);
         if (userOpt.isEmpty()) {
             throw new NotFoundException("User not found");
         }

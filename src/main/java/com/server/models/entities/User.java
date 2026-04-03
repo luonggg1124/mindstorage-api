@@ -3,6 +3,7 @@ package com.server.models.entities;
 import com.server.models.enums.UserProviderName;
 import com.server.models.extend.Timestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.server.models.enums.UserGender;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,4 +53,8 @@ public class User extends Timestamp {
     @Enumerated(EnumType.STRING)
     @Column(name = "provider_name", nullable = true)
     private UserProviderName providerName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", nullable = true)
+    private UserGender gender;
 }
