@@ -1,7 +1,6 @@
 package com.server.services.auth;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -10,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +21,7 @@ import com.server.exceptions.BadRequestException;
 import com.server.exceptions.ConflictException;
 import com.server.exceptions.NotFoundException;
 import com.server.models.entities.User;
+import com.server.models.enums.UserGender;
 import com.server.repositories.user.UserRepository;
 import com.server.services.auth.records.GenerateTokenRecord;
 import com.server.services.auth.records.LoginRecord;
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImplement implements AuthService {
@@ -82,7 +84,9 @@ public class AuthServiceImplement implements AuthService {
             String password,
             String fullName,
             String session,
-            List<String> hobbies,
+            UserGender gender,
+            String hobbies,
+            String intendedUse,
             String code
     ) {
         Object cached = redisTemplate.opsForValue().get(AuthCache.verifyEmailKey(session));
@@ -101,8 +105,10 @@ public class AuthServiceImplement implements AuthService {
         user.setEmail(email);
         user.setUsername(username);
         user.setFullName(fullName == null ? "" : fullName);
+        user.setGender(gender);
         user.setVerified(true);
-        user.setHobbies(String.join(",", hobbies));
+        user.setHobbies(hobbies);
+        user.setIntendedUse(intendedUse);
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         redisTemplate.delete(AuthCache.verifyEmailKey(session));

@@ -5,7 +5,6 @@ import com.server.controllers.group.request.UpdateGroupRequest;
 import com.server.controllers.group.response.CreateGroupResponse;
 import com.server.controllers.group.response.GroupsBySpaceResponse;
 import com.server.controllers.group.response.UpdateGroupResponse;
-import com.server.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
