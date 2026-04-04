@@ -13,6 +13,7 @@ import com.server.controllers.auth.request.VerifyEmailRequest;
 import com.server.controllers.auth.response.LoginResponse;
 import com.server.controllers.auth.response.RegisterResponse;
 import com.server.controllers.auth.response.VerifyEmailResponse;
+import com.server.models.enums.UserGender;
 import com.server.services.auth.AuthService;
 import com.server.services.auth.records.LoginRecord;
 import com.server.services.auth.records.VerifyEmailRecord;
@@ -46,13 +47,18 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        UserGender gender = request.getGender() == null
+                ? null
+                : UserGender.valueOf(request.getGender());
         LoginRecord auth = authService.register(
             request.getEmail(),
             request.getUsername(),
             request.getPassword(),
             request.getFullName(),
             request.getSession(),
+            gender,
             request.getHobbies(),
+            request.getIntendedUse(),
             request.getCode()
         );
         RegisterResponse response = new RegisterResponse(

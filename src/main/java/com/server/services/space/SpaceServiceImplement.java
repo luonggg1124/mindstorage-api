@@ -21,4 +21,56 @@ public class SpaceServiceImplement implements SpaceService {
         User currentUser = authService.authUser();
         return spaceRepository.findByCreator_Id(currentUser.getId());
     }
+    @Override
+    //Creat
+    
+    public Space createSpace(String name) {
+
+        User currentUser = authService.authUser();
+
+        Space space = new Space();
+        space.setName(name);
+        space.setCreator(currentUser);
+        return spaceRepository.save(space);
+    }
+    //GetByID
+    @Override
+    public Space getSpaceById(Long id) {
+
+        User currentUser = authService.authUser();
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Space not found"));
+        if (!space.getCreator().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+        return space;
+    }
+    //Update
+     @Override
+    public Space updateSpace(Long id, String name) {
+        User currentUser = authService.authUser();
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Space not found"));
+
+        if (!space.getCreator().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+        space.setName(name);
+        return spaceRepository.save(space);
+    }
+    //Delete    
+     @Override
+    public Space deleteSpace(Long id) {
+        User currentUser = authService.authUser();
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Space not found"));
+        if (!space.getCreator().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("failed to delete space");
+        }
+
+        spaceRepository.delete(space);
+        return space;
+    }
+
+    //
 }

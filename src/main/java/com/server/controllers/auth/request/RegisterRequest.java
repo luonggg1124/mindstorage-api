@@ -1,16 +1,14 @@
 package com.server.controllers.auth.request;
-import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Pattern;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "Email không được để trống")
     private String email;
@@ -25,8 +23,16 @@ public class RegisterRequest {
     @NotBlank(message = "Mã xác thực không được để trống")
     private String code;
 
+    @Pattern(
+            regexp = "^(MALE|FEMALE|OTHER)$",
+            message = "Giới tính phải là MALE, FEMALE hoặc OTHER")
+    private String gender;
+     
     private String fullName;
 
-    private List<String> hobbies;
+    private String hobbies;
+
+    @NotBlank(message = "Mục đích sử dụng không được để trống")
+    private String intendedUse;
 
 }
