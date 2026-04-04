@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -20,15 +21,17 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
     private final AuthService authService;
+
+    public JwtTokenValidatorFilter(@Lazy AuthService authService) {
+        this.authService = authService;
+    }
 
     // Danh sách các path không cần validate JWT token
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
