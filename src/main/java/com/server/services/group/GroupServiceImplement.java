@@ -30,7 +30,7 @@ public class GroupServiceImplement implements GroupService {
     @Override
     public List<GroupsBySpaceResponse> getAllBySpace(Long spaceId, int page, int size) {
         if(!spaceRepository.existsById(spaceId)) {
-            throw new NotFoundException("Không tìm thấy Space");
+            throw new NotFoundException("Không tìm thấy không gian");
         }
         Pageable pageable = PageRequest.of(page, size);
         List<Group> groups = groupRepository.getAllBySpace_Id(spaceId, pageable);
@@ -42,7 +42,7 @@ public class GroupServiceImplement implements GroupService {
     @Override
     public CreateGroupResponse create(CreateGroupRequest groupRequest) {
         Space space = spaceRepository.findById(groupRequest.getSpaceId()).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy Space")
+                () -> new NotFoundException("Không tìm thấy không gian")
         );
         Group newGroup = new Group();
         BeanUtils.copyProperties(groupRequest, newGroup);
@@ -55,10 +55,10 @@ public class GroupServiceImplement implements GroupService {
     @Override
     public UpdateGroupResponse update(Long id ,UpdateGroupRequest groupRequest) {
         Space space = spaceRepository.findById(groupRequest.getSpaceId()).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy Space")
+                () -> new NotFoundException("Không tìm thấy không gian")
         );
         Group group = groupRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy Group")
+                () -> new NotFoundException("Không tìm thấy nhóm")
         );
         BeanUtils.copyProperties(groupRequest, group);
         group.setSpace(space);
@@ -70,7 +70,7 @@ public class GroupServiceImplement implements GroupService {
     @Override
     public void delete(Long groupId) {
         Group group = groupRepository.findById(groupId).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy Group")
+                () -> new NotFoundException("Không tìm thấy nhóm")
         );
         group.setIsDeleted(!group.getIsDeleted());
         groupRepository.save(group);
