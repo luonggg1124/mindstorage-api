@@ -23,4 +23,6 @@ public class SpaceController {
         List<Space> spaces = spaceService.getAllUserSpaces();
         return ResponseEntity.ok(spaces);
     }
+    
+    
 }
