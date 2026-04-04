@@ -1,5 +1,7 @@
 package com.server.services.auth;
 
+import java.util.List;
+
 import com.server.models.entities.User;
 import com.server.services.auth.records.LoginRecord;
 import com.server.services.auth.records.VerifyEmailRecord;
@@ -16,6 +18,7 @@ public interface  AuthService {
         String password,
         String fullName,
         String session,
+        List<String> hobbies,
         String code
     );
      Claims parseToken(String token);
