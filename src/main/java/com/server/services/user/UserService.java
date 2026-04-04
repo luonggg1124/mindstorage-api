@@ -1,5 +1,6 @@
 package com.server.services.user;
 
 public interface  UserService {
-    boolean existsByUsername(String username);
+    boolean validateUsernamePassword(String username, String password);
+    
 }

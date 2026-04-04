@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.server.cache.AuthCache;
 import com.server.controllers.auth.request.LoginRequest;
 import com.server.controllers.auth.request.RegisterRequest;
@@ -33,7 +32,8 @@ public class AuthController {
         LoginResponse response = new LoginResponse(
             AuthCache.REFRESH_EXPIRATION.toString(),
             auth.accessToken(),
-            auth.refreshToken()
+            auth.refreshToken(),
+            auth.user()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -44,8 +44,6 @@ public class AuthController {
         return ResponseEntity.ok(new VerifyEmailResponse(record.session()));
     }
 
-    
-
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         LoginRecord auth = authService.register(
@@ -54,12 +52,14 @@ public class AuthController {
             request.getPassword(),
             request.getFullName(),
             request.getSession(),
+            request.getHobbies(),
             request.getCode()
         );
         RegisterResponse response = new RegisterResponse(
-            AuthCache.REFRESH_EXPIRATION.toString(),
+            AuthCache.REFRESH_EXPIRATION,
             auth.accessToken(),
-            auth.refreshToken()
+            auth.refreshToken(),
+            auth.user()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

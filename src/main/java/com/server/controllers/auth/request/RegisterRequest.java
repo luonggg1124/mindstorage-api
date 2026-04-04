@@ -1,12 +1,7 @@
 package com.server.controllers.auth.request;
-
-
-
-import org.springframework.web.multipart.MultipartFile;
-
+import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,31 +12,21 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequest {
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "Email không được để trống")
     private String email;
-    @NotEmpty(message = "Username is required")
+    @NotEmpty(message = "Tên đăng nhập không được để trống")
     private String username;
-    @NotBlank(message = "Password is required")
+    @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
 
-    @NotBlank(message = "Session is required")
+    @NotBlank(message = "Phiên xác thực không được để trống")
     private String session;
 
-    @NotBlank(message = "Code is required")
+    @NotBlank(message = "Mã xác thực không được để trống")
     private String code;
 
     private String fullName;
 
-    private String hobbies;
+    private List<String> hobbies;
 
-    private MultipartFile avatar_file;
-
-    @Pattern(
-        regexp = "^\\d{4}-\\d{2}-\\d{2}$",
-        message = "Date of Birth must be in the format yyyy-MM-dd"
-    )
-    private String dob;
-
-
-    
 }

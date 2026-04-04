@@ -1,5 +1,6 @@
 package com.server.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.extend.Timestamp;
 
 import jakarta.persistence.Column;
@@ -33,6 +34,7 @@ public class Group extends Timestamp {
     private String name;
 
     @Column(name="embedding", nullable = false, columnDefinition = "vector(1536)")
+    @JsonIgnore
     private float[] embedding;
 
     @Column(name="description")

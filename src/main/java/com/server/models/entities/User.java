@@ -2,6 +2,9 @@ package com.server.models.entities;
 
 import com.server.models.enums.UserProviderName;
 import com.server.models.extend.Timestamp;
+
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.enums.UserGender;
 
@@ -28,17 +31,17 @@ public class User extends Timestamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name= "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(name= "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name= "password", nullable = true)
+    @Column(name = "password", nullable = true)
     @JsonIgnore
     private String password;
 
-    @Column(name= "full_name", nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(name = "is_verified", nullable = false)
@@ -49,7 +52,7 @@ public class User extends Timestamp {
 
     @Column(name = "provider_id", nullable = true)
     private String providerId;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "provider_name", nullable = true)
     private UserProviderName providerName;
@@ -57,4 +60,19 @@ public class User extends Timestamp {
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = true)
     private UserGender gender;
+
+    @Column(name = "hobbies", nullable = true)
+    private String hobbies;
+
+    @Column(name = "intended_use", nullable = true)
+    @JsonIgnore
+    private String intendedUse;
+
+    @Column(name = "hobbies_embedding", nullable = true, columnDefinition = "vector(1536)")
+    @JsonIgnore
+    private float[] hobbiesEmbedding;
+
+    @Column(name = "intended_use_embedding", nullable = true, columnDefinition = "vector(1536)")
+    @JsonIgnore
+    private float[] intendedUseEmbedding;
 }

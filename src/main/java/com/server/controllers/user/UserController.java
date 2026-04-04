@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.server.controllers.user.request.ExistsUsernameRequest;
-import com.server.controllers.user.response.ExistsUsernameReponse;
+import com.server.controllers.user.request.ValidUsernamePasswordRequest;
+import com.server.controllers.user.response.ValidUsernamePasswordResponse;
 import com.server.services.user.UserService;
 
 import jakarta.validation.Valid;
@@ -19,8 +19,9 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/exists-username")
-    public ResponseEntity<ExistsUsernameReponse> existsUsername(@Valid @RequestBody ExistsUsernameRequest request) {
-        return ResponseEntity.ok(new ExistsUsernameReponse(userService.existsByUsername(request.getUsername())));
+    @PostMapping("/valid-username-password")
+    public ResponseEntity<ValidUsernamePasswordResponse> validUsernamePassword(@Valid @RequestBody ValidUsernamePasswordRequest request) {
+        boolean isValid = userService.validateUsernamePassword(request.getUsername(), request.getPassword());
+        return ResponseEntity.ok(new ValidUsernamePasswordResponse(isValid));
     }
 }

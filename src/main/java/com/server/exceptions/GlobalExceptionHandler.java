@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(error -> Objects.requireNonNull(error.getDefaultMessage()))
-                .orElse("Validation failed");
+                .orElse("Xác thực dữ liệu thất bại");
         String field = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(error -> error.getField())
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("message", "Invalid format data.");
+        response.put("message", "Dữ liệu không đúng định dạng.");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleBadRequestException(BadRequestException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Bad request");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Yêu cầu không hợp lệ");
         response.put("field", ex.getField());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleNotFoundException(NotFoundException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.NOT_FOUND.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Not found");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Không tìm thấy");
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleBadDataException(BadDataException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Bad request");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Yêu cầu không hợp lệ");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleConflictException(ConflictException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.CONFLICT.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Conflict");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Dữ liệu bị trùng");
         response.put("field", ex.getField());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleTooManyRequestException(TooManyRequestException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.TOO_MANY_REQUESTS.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Too many requests");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Quá nhiều yêu cầu");
         return new ResponseEntity<>(response, HttpStatus.TOO_MANY_REQUESTS);
     }
 
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
         log.error("Internal server error: {}", ex.getMessage(), ex);
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Internal server error");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Lỗi máy chủ nội bộ");
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Internal server error");
+        response.put("message", ex.getMessage() != null ? ex.getMessage() : "Lỗi máy chủ nội bộ");
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

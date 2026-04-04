@@ -1,6 +1,7 @@
 package com.server.services.auth;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -17,25 +18,30 @@ import org.springframework.stereotype.Service;
 
 import com.server.cache.AuthCache;
 import com.server.exceptions.BadRequestException;
+import com.server.exceptions.ConflictException;
 import com.server.exceptions.NotFoundException;
 import com.server.models.entities.User;
 import com.server.repositories.user.UserRepository;
 import com.server.services.auth.records.GenerateTokenRecord;
 import com.server.services.auth.records.LoginRecord;
 import com.server.services.auth.records.VerifyEmailRecord;
+import com.server.services.others.email.EmailService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImplement implements AuthService {
 
     @Value("${jwt.secret}")
     private String secretKey;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final RedisTemplate<String, Object> redisTemplate;
     private final Random random = new Random();
@@ -55,9 +61,15 @@ public class AuthServiceImplement implements AuthService {
     
 
     public VerifyEmailRecord sendVerificationEmail(String email){
+        if(userRepository.existsByEmail(email)){
+            throw new ConflictException("Email đã tồn tại", "email");
+        }
         // In a real implementation, you would send an email here
         String session = UUID.randomUUID().toString();
         String code = String.format("%06d", random.nextInt(1_000_000));
+        long sentAt = System.currentTimeMillis();
+        emailService.sendOtp(email, code);
+        log.info(String.format("sentAt: {%s}", sentAt));
         redisTemplate.opsForValue().set(AuthCache.verifyEmailKey(session), code, 5, TimeUnit.MINUTES);
         return new VerifyEmailRecord(session);
     }
@@ -70,18 +82,19 @@ public class AuthServiceImplement implements AuthService {
             String password,
             String fullName,
             String session,
+            List<String> hobbies,
             String code
     ) {
         Object cached = redisTemplate.opsForValue().get(AuthCache.verifyEmailKey(session));
         if (!(cached instanceof String cachedCode)) {
-            throw new BadRequestException("Verification session expired or invalid");
+            throw new BadRequestException("Phiên xác thực hết hạn hoặc không hợp lệ");
         }
         if (!cachedCode.equals(code)) {
-            throw new BadRequestException("Invalid verification code");
+            throw new BadRequestException("Mã xác thực không đúng");
         }
 
         if (userRepository.findByEmailOrUsername(email, username).isPresent()) {
-            throw new BadRequestException("Email or username already exists");
+            throw new BadRequestException("Email hoặc tên đăng nhập đã tồn tại");
         }
 
         User user = new User();
@@ -89,6 +102,7 @@ public class AuthServiceImplement implements AuthService {
         user.setUsername(username);
         user.setFullName(fullName == null ? "" : fullName);
         user.setVerified(true);
+        user.setHobbies(String.join(",", hobbies));
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         redisTemplate.delete(AuthCache.verifyEmailKey(session));
@@ -124,7 +138,7 @@ public class AuthServiceImplement implements AuthService {
 
         // Fallback to database and re-cache
         User user = userRepository.findById(Long.parseLong(userId))
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
 
         redisTemplate.opsForValue().set(
                 AuthCache.userKey(userId),
@@ -139,11 +153,11 @@ public class AuthServiceImplement implements AuthService {
     public LoginRecord login(String usernameOrEmail, String password) {
         Optional<User> userOpt = userRepository.findByEmailOrUsername(usernameOrEmail, usernameOrEmail);
         if (userOpt.isEmpty()) {
-            throw new NotFoundException("User not found");
+            throw new NotFoundException("Không tìm thấy người dùng");
         }
         User user = userOpt.get();
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Invalid password");
+            throw new BadRequestException("Mật khẩu không đúng");
         }
         GenerateTokenRecord tokenRecord = generateToken(user);
         return new LoginRecord(tokenRecord.accessToken(), tokenRecord.refreshToken(), user);

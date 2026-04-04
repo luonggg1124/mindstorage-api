@@ -1,9 +1,11 @@
 package com.server.cache;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
+@Component
 public class AuthCache {
     public static Long ACCESS_EXPIRATION;
     public static Long REFRESH_EXPIRATION;

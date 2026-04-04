@@ -1,5 +1,7 @@
 package com.server.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,6 +37,7 @@ public class Note {
 
 
     @Column(name = "embedding", nullable = false, columnDefinition = "vector(1536)")
+    @JsonIgnore
     private String embedding;
 
     
