@@ -1,5 +1,6 @@
 package com.server.controllers.user.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExistsUsernameReponse {
-    private boolean exists;
+public class ValidUsernamePasswordResponse {
+    
+    private boolean valid;
 }

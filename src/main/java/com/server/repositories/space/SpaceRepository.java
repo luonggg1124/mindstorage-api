@@ -8,4 +8,5 @@ import com.server.models.entities.Space;
 
 public interface SpaceRepository extends JpaRepository<Space, Long> {
     List<Space> findByCreator_Id(Long creatorId);
+    boolean existsById(Long id);
 }

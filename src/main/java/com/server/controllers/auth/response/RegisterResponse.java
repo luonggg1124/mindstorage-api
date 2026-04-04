@@ -1,5 +1,7 @@
 package com.server.controllers.auth.response;
 
+import com.server.models.entities.User;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterResponse {
-    private String refreshExpire;
+    private Long refreshTokenExpiresIn;
     private String accessToken;
     private String refreshToken;
+    private User user;
 }

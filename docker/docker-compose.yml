@@ -47,7 +47,7 @@ services:
 
   # 🔹 PostgreSQL Database
   postgres_db:
-    image: postgres:17.2
+    image: pgvector/pgvector:pg17
     container_name: postgres_db
     restart: always
     healthcheck:
@@ -63,6 +63,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+     
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
 
