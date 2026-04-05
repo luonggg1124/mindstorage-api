@@ -2,17 +2,20 @@ package com.server.controllers.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.server.cache.AuthCache;
 import com.server.controllers.auth.request.LoginRequest;
+import com.server.controllers.auth.request.RefreshTokenRequest;
 import com.server.controllers.auth.request.RegisterRequest;
 import com.server.controllers.auth.request.VerifyEmailRequest;
 import com.server.controllers.auth.response.LoginResponse;
 import com.server.controllers.auth.response.RegisterResponse;
 import com.server.controllers.auth.response.VerifyEmailResponse;
+import com.server.models.entities.User;
 import com.server.models.enums.UserGender;
 import com.server.services.auth.AuthService;
 import com.server.services.auth.records.LoginRecord;
@@ -27,15 +30,31 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
     private final AuthService authService;
 
+    @GetMapping("/me")
+    public ResponseEntity<User> me() {
+        User user = authService.authUser();
+        return ResponseEntity.ok(user);
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginRecord auth = authService.login(request.getUsername(), request.getPassword());
         LoginResponse response = new LoginResponse(
-            AuthCache.REFRESH_EXPIRATION.toString(),
-            auth.accessToken(),
-            auth.refreshToken(),
-            auth.user()
-        );
+                AuthCache.REFRESH_EXPIRATION.toString(),
+                auth.accessToken(),
+                auth.refreshToken(),
+                auth.user());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        LoginRecord auth = authService.refreshToken(request.getRefreshToken());
+        LoginResponse response = new LoginResponse(
+                AuthCache.REFRESH_EXPIRATION.toString(),
+                auth.accessToken(),
+                auth.refreshToken(),
+                auth.user());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -51,22 +70,20 @@ public class AuthController {
                 ? null
                 : UserGender.valueOf(request.getGender());
         LoginRecord auth = authService.register(
-            request.getEmail(),
-            request.getUsername(),
-            request.getPassword(),
-            request.getFullName(),
-            request.getSession(),
-            gender,
-            request.getHobbies(),
-            request.getIntendedUse(),
-            request.getCode()
-        );
+                request.getEmail(),
+                request.getUsername(),
+                request.getPassword(),
+                request.getFullName(),
+                request.getSession(),
+                gender,
+                request.getHobbies(),
+                request.getIntendedUse(),
+                request.getCode());
         RegisterResponse response = new RegisterResponse(
-            AuthCache.REFRESH_EXPIRATION,
-            auth.accessToken(),
-            auth.refreshToken(),
-            auth.user()
-        );
+                AuthCache.REFRESH_EXPIRATION,
+                auth.accessToken(),
+                auth.refreshToken(),
+                auth.user());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

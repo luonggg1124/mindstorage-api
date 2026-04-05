@@ -24,6 +24,7 @@ public interface  AuthService {
         String intendedUse,
         String code
     );
+    LoginRecord refreshToken(String refreshToken);
      Claims parseToken(String token);
      User userFromToken(String token);
      User authUser();

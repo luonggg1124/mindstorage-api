@@ -37,7 +37,8 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
             "/api/auth/login",
             "/api/auth/register",
-            "/api/auth/verify-email"
+            "/api/auth/verify-email",
+            "/api/auth/refresh-token"
     );
 
     @Override
