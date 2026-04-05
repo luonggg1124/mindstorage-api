@@ -36,6 +36,9 @@ public class Note {
     private String content;
 
 
+    @Column(name="is_deleted")
+    private Boolean isDeleted;
+
     @Column(name = "embedding", nullable = false, columnDefinition = "vector(1536)")
     @JsonIgnore
     private String embedding;

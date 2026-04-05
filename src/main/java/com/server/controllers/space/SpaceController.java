@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class SpaceController {
     private final SpaceService spaceService;
 
-    @GetMapping
+    @GetMapping("/my-spaces")
     public ResponseEntity<List<Space>> getAllSpaces() {
         List<Space> spaces = spaceService.getAllUserSpaces();
         return ResponseEntity.ok(spaces);

@@ -31,6 +31,8 @@ public class Space extends Timestamp {
     @Column(name = "name", nullable = false)    
     private String name;
 
+    @Column(name="is_deleted")
+    private Boolean isDeleted;
 
     @Column(name = "embedding", nullable = false, columnDefinition = "vector(1536)")
     @JsonIgnore
