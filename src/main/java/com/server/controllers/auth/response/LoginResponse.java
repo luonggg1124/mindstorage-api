@@ -3,11 +3,13 @@ package com.server.controllers.auth.response;
 import com.server.models.entities.User;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 
+
+
+@Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public class LoginResponse {
     private String refreshExpire;
     private String accessToken;
