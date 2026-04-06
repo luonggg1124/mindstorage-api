@@ -20,6 +20,7 @@ import com.server.cache.AuthCache;
 import com.server.exceptions.BadRequestException;
 import com.server.exceptions.ConflictException;
 import com.server.exceptions.NotFoundException;
+import com.server.exceptions.UnauthorizedException;
 import com.server.models.entities.User;
 import com.server.models.enums.UserGender;
 import com.server.repositories.user.UserRepository;
@@ -128,7 +129,10 @@ public class AuthServiceImplement implements AuthService {
     @Override
     public User authUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new UnauthorizedException("Chưa đăng nhập");
+        }
+        return user;
     }
 
     @Override

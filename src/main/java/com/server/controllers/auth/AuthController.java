@@ -40,7 +40,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginRecord auth = authService.login(request.getUsername(), request.getPassword());
         LoginResponse response = new LoginResponse(
-                AuthCache.REFRESH_EXPIRATION.toString(),
+                AuthCache.REFRESH_EXPIRATION,
                 auth.accessToken(),
                 auth.refreshToken(),
                 auth.user());
@@ -51,7 +51,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         LoginRecord auth = authService.refreshToken(request.getRefreshToken());
         LoginResponse response = new LoginResponse(
-                AuthCache.REFRESH_EXPIRATION.toString(),
+                AuthCache.REFRESH_EXPIRATION,
                 auth.accessToken(),
                 auth.refreshToken(),
                 auth.user());
