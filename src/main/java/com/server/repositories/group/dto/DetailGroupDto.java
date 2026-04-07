@@ -1,13 +1,15 @@
-package com.server.controllers.group.response;
+package com.server.repositories.group.dto;
 
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
 @AllArgsConstructor
-public class CreateGroupResponse {
+@NoArgsConstructor
+public class DetailGroupDto {
     private Long id;
     private String name;
     private String description;

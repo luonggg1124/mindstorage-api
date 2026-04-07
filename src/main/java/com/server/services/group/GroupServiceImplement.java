@@ -3,22 +3,19 @@ package com.server.services.group;
 import com.server.controllers.group.request.CreateGroupRequest;
 import com.server.controllers.group.request.UpdateGroupRequest;
 import com.server.controllers.group.response.CreateGroupResponse;
-import com.server.controllers.group.response.GroupsBySpaceResponse;
 import com.server.controllers.group.response.UpdateGroupResponse;
 import com.server.exceptions.NotFoundException;
 import com.server.models.entities.Group;
 import com.server.models.entities.Space;
 import com.server.repositories.space.SpaceRepository;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import com.server.repositories.group.GroupRepository;
-
+import com.server.repositories.group.dto.DetailGroupDto;
+import com.server.repositories.group.dto.GroupBySpaceDto;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,38 +25,40 @@ public class GroupServiceImplement implements GroupService {
     private final SpaceRepository spaceRepository;
 
     @Override
-    public List<GroupsBySpaceResponse> getAllBySpace(Long spaceId, int page, int size) {
-        if(!spaceRepository.existsById(spaceId)) {
+    public List<GroupBySpaceDto> getGroupsBySpace(Long spaceId) {
+        if (!spaceRepository.existsById(spaceId)) {
             throw new NotFoundException("Không tìm thấy không gian");
         }
-        Pageable pageable = PageRequest.of(page, size);
-        List<Group> groups = groupRepository.getAllBySpace_Id(spaceId, pageable);
-        List<GroupsBySpaceResponse> groupsBySpaces = new ArrayList<>();
-        BeanUtils.copyProperties(groups, groupsBySpaces);
-        return groupsBySpaces;
+        List<GroupBySpaceDto> groups = groupRepository.getGroupBySpace(spaceId);
+
+        return groups;
+    }
+   
+
+    public DetailGroupDto detailGroup(Long id) {
+        Group group = groupRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
+                () -> new NotFoundException("Không tìm thấy nhóm"));
+        return new DetailGroupDto(group.getId(), group.getName(), group.getDescription(), group.getCreatedAt(), group.getUpdatedAt());
     }
 
     @Override
-    public CreateGroupResponse create(CreateGroupRequest groupRequest) {
-        Space space = spaceRepository.findById(groupRequest.getSpaceId()).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy không gian")
-        );
+    public Group create(String name, String description, Long spaceId) {
+        Space space = spaceRepository.findById(spaceId).orElseThrow(
+                () -> new NotFoundException("Không tìm thấy không gian"));
         Group newGroup = new Group();
-        BeanUtils.copyProperties(groupRequest, newGroup);
+        newGroup.setName(name);
+        newGroup.setDescription(description);
         newGroup.setSpace(space);
-        CreateGroupResponse createGroupResponse = new CreateGroupResponse();
-        BeanUtils.copyProperties(groupRepository.save(newGroup), createGroupResponse);
-        return createGroupResponse;
+        newGroup.setEmbedding(new float[1536]);
+        return groupRepository.save(newGroup);
     }
 
     @Override
-    public UpdateGroupResponse update(Long id ,UpdateGroupRequest groupRequest) {
+    public UpdateGroupResponse update(Long id, UpdateGroupRequest groupRequest) {
         Space space = spaceRepository.findById(groupRequest.getSpaceId()).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy không gian")
-        );
+                () -> new NotFoundException("Không tìm thấy không gian"));
         Group group = groupRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy nhóm")
-        );
+                () -> new NotFoundException("Không tìm thấy nhóm"));
         BeanUtils.copyProperties(groupRequest, group);
         group.setSpace(space);
         UpdateGroupResponse updateGroupResponse = new UpdateGroupResponse();
@@ -70,9 +69,9 @@ public class GroupServiceImplement implements GroupService {
     @Override
     public void delete(Long groupId) {
         Group group = groupRepository.findById(groupId).orElseThrow(
-                () -> new NotFoundException("Không tìm thấy nhóm")
-        );
-        group.setIsDeleted(!group.getIsDeleted());
+                () -> new NotFoundException("Không tìm thấy nhóm"));
+        LocalDateTime current = group.getDeletedAt();
+        group.setDeletedAt(current == null ? LocalDateTime.now() : null);
         groupRepository.save(group);
     }
 }

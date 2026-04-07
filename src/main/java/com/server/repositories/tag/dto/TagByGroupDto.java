@@ -1,16 +1,18 @@
-package com.server.controllers.group.response;
+package com.server.repositories.tag.dto;
 
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class CreateGroupResponse {
+public class TagByGroupDto {
     private Long id;
     private String name;
-    private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

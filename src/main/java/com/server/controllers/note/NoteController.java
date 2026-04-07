@@ -37,7 +37,7 @@ public class NoteController {
         note.setTitle(noteRequest.getTitle());
         note.setContent(noteRequest.getContent());
         note.setCreator(authService.authUser());
-        note.setEmbedding(generateDefaultEmbedding());
+        note.setEmbedding(new float[1536]);
         
         if (noteRequest.getParentId() != null) {
             Note parentNote = noteService.getNoteById(noteRequest.getParentId());
@@ -71,13 +71,5 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private String generateDefaultEmbedding() {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < 1536; i++) {
-            if (i > 0) sb.append(",");
-            sb.append("0.0");
-        }
-        sb.append("]");
-        return sb.toString();
-    }
+   
 }

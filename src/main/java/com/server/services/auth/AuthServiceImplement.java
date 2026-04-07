@@ -183,14 +183,13 @@ public class AuthServiceImplement implements AuthService {
 
     @Override
     public LoginRecord refreshToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new BadRequestException("Refresh token không được để trống");
-        }
+        
         String key = AuthCache.refreshKey(refreshToken);
         Object userId = redisTemplate.opsForValue().get(key);
         if (userId == null) {
             throw new BadRequestException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
+        log.info(String.format("userId: {%s}", userId));
         redisTemplate.delete(key);
         String userIdString = userId.toString();
         Object cached = redisTemplate.opsForValue().get(AuthCache.userKey(userIdString));

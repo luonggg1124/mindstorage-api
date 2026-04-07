@@ -1,4 +1,4 @@
-package com.server.controllers.group.response;
+package com.server.controllers.tag.response;
 
 import java.time.LocalDateTime;
 
@@ -7,10 +7,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CreateGroupResponse {
+public class CreateTagResponse {
     private Long id;
     private String name;
-    private String description;
+    private Long groupId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

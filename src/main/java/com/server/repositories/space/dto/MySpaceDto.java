@@ -1,16 +1,21 @@
-package com.server.controllers.group.response;
+package com.server.repositories.space.dto;
 
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class CreateGroupResponse {
+public class MySpaceDto {
     private Long id;
     private String name;
     private String description;
+    private String imageUrl;
+    private long groupCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+   
 }
