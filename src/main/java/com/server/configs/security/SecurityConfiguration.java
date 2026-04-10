@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -31,8 +33,12 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint)
                         .accessDeniedHandler(restAccessDeniedHandler))
+                .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimit, JwtTokenValidatorFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers("/api/space/**", "/api/note/**", "/api/group/**", "/api/topic/**")
+                                .authenticated()
                         .anyRequest().permitAll())
                 ;
 

@@ -20,6 +20,7 @@ import com.server.cache.AuthCache;
 import com.server.exceptions.BadRequestException;
 import com.server.exceptions.ConflictException;
 import com.server.exceptions.NotFoundException;
+import com.server.exceptions.UnauthorizedException;
 import com.server.models.entities.User;
 import com.server.models.enums.UserGender;
 import com.server.repositories.user.UserRepository;
@@ -55,15 +56,16 @@ public class AuthServiceImplement implements AuthService {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(AuthCache.refreshKey(token), user.getId().toString(),
                 AuthCache.REFRESH_EXPIRATION, TimeUnit.MILLISECONDS);
-        redisTemplate.opsForValue().set(AuthCache.userKey(user.getId().toString()), user, AuthCache.ACCESS_EXPIRATION, TimeUnit.MILLISECONDS);
-        String accessToken = Jwts.builder().claim("user_id", user.getId().toString()).issuedAt(now).expiration(expiry).signWith(key).compact();
+        redisTemplate.opsForValue().set(AuthCache.userKey(user.getId().toString()), user, AuthCache.ACCESS_EXPIRATION,
+                TimeUnit.MILLISECONDS);
+        String accessToken = Jwts.builder().claim("user_id", user.getId().toString()).issuedAt(now).expiration(expiry)
+                .signWith(key).compact();
         return new GenerateTokenRecord(accessToken, token);
 
     }
-    
 
-    public VerifyEmailRecord sendVerificationEmail(String email){
-        if(userRepository.existsByEmail(email)){
+    public VerifyEmailRecord sendVerificationEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
             throw new ConflictException("Email đã tồn tại", "email");
         }
         // In a real implementation, you would send an email here
@@ -76,7 +78,6 @@ public class AuthServiceImplement implements AuthService {
         return new VerifyEmailRecord(session);
     }
 
-    
     @Override
     public LoginRecord register(
             String email,
@@ -87,8 +88,7 @@ public class AuthServiceImplement implements AuthService {
             UserGender gender,
             String hobbies,
             String intendedUse,
-            String code
-    ) {
+            String code) {
         Object cached = redisTemplate.opsForValue().get(AuthCache.verifyEmailKey(session));
         if (!(cached instanceof String cachedCode)) {
             throw new BadRequestException("Phiên xác thực hết hạn hoặc không hợp lệ");
@@ -129,7 +129,10 @@ public class AuthServiceImplement implements AuthService {
     @Override
     public User authUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new UnauthorizedException("Chưa đăng nhập");
+        }
+        return user;
     }
 
     @Override
@@ -176,6 +179,32 @@ public class AuthServiceImplement implements AuthService {
         }
         String key = AuthCache.refreshKey(refreshToken);
         redisTemplate.delete(key);
+    }
+
+    @Override
+    public LoginRecord refreshToken(String refreshToken) {
+        
+        String key = AuthCache.refreshKey(refreshToken);
+        Object userId = redisTemplate.opsForValue().get(key);
+        if (userId == null) {
+            throw new BadRequestException("Refresh token không hợp lệ hoặc đã hết hạn");
+        }
+        log.info(String.format("userId: {%s}", userId));
+        redisTemplate.delete(key);
+        String userIdString = userId.toString();
+        Object cached = redisTemplate.opsForValue().get(AuthCache.userKey(userIdString));
+        User user = cached instanceof User u ? u
+                : userRepository.findById(Long.parseLong(userIdString))
+                        .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+        if (!(cached instanceof User)) {
+            redisTemplate.opsForValue().set(
+                    AuthCache.userKey(userIdString),
+                    user,
+                    AuthCache.ACCESS_EXPIRATION,
+                    TimeUnit.MILLISECONDS);
+        }
+        GenerateTokenRecord tokenRecord = generateToken(user);
+        return new LoginRecord(tokenRecord.accessToken(), tokenRecord.refreshToken(), user);
     }
 
 }

@@ -1,19 +1,18 @@
 package com.server.services.group;
 
-import com.server.controllers.group.request.CreateGroupRequest;
-import com.server.controllers.group.request.UpdateGroupRequest;
-import com.server.controllers.group.response.CreateGroupResponse;
-import com.server.controllers.group.response.GroupsBySpaceResponse;
-import com.server.controllers.group.response.UpdateGroupResponse;
-
-import java.util.List;
+import com.server.models.entities.Group;
+import com.server.services.group.dto.DetailGroupDto;
+import com.server.services.group.dto.GroupBySpaceDto;
+import com.server.services.others.data.dto.PageResponse;
 
 public interface GroupService {
-    List<GroupsBySpaceResponse> getAllBySpace(Long spaceId, int page, int size);
+    PageResponse<GroupBySpaceDto> getGroupsBySpace(Long spaceId, String q, Integer page, Integer size);
 
-    CreateGroupResponse create(CreateGroupRequest group);
+    Group create(String name, String description, Long spaceId);
 
-    UpdateGroupResponse update(Long id,UpdateGroupRequest group);
+    DetailGroupDto detailGroup(Long id);
+
+    Group update(Long id, String name, String description, Long spaceId);
 
     void delete(Long groupId);
 }

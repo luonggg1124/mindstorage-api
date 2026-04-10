@@ -2,6 +2,7 @@ package com.server.configs.security;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.http.HttpHeaders;
@@ -37,7 +38,8 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
             "/api/auth/login",
             "/api/auth/register",
-            "/api/auth/verify-email"
+            "/api/auth/verify-email",
+            "/api/auth/refresh-token"
     );
 
     @Override
@@ -75,7 +77,7 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
                 // Get user from service (will get from cache or database and cache it)
                 User user = authService.userFromToken(token);
 
-                Authentication authentication = new UsernamePasswordAuthenticationToken(user, null);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();

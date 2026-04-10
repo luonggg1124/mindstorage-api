@@ -1,12 +1,16 @@
 package com.server.controllers.group.response;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public class CreateGroupResponse {
     private Long id;
     private String name;
     private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

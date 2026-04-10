@@ -1,5 +1,7 @@
 package com.server.controllers.note;
 
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -7,16 +9,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.server.controllers.note.request.NoteRequest;
+import com.server.controllers.note.response.CreateNoteResponse;
 import com.server.models.entities.Note;
-import com.server.services.auth.AuthService;
 import com.server.services.note.NoteService;
+import com.server.services.others.data.dto.PageResponse;
+import com.server.services.note.dto.NoteByTopicDto;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,60 +30,49 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/note")
 public class NoteController {
     private final NoteService noteService;
-    private final AuthService authService;
 
-    @GetMapping("/by-group/{groupId}")
-    public ResponseEntity<?> listNoteByGroup(@PathVariable Long groupId){
-        return ResponseEntity.ok(noteService.getAllListNote());
+    @GetMapping("/by-topic/{topicId}")
+    public ResponseEntity<PageResponse<NoteByTopicDto>> getNotesByTopic(
+            @PathVariable Long topicId,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") @Positive(message = "Số trang không hợp lệ.") Integer page,
+            @RequestParam(defaultValue = "10") @Positive(message = "Số lượng bản ghi trên trang không hợp lệ.") Integer size) {
+        return ResponseEntity.ok(noteService.getNotesByTopic(topicId, q, page, size));
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody NoteRequest noteRequest) {
-        Note note = new Note();
-        note.setTitle(noteRequest.getTitle());
-        note.setContent(noteRequest.getContent());
-        note.setCreator(authService.authUser());
-        note.setEmbedding(generateDefaultEmbedding());
-        
-        if (noteRequest.getParentId() != null) {
-            Note parentNote = noteService.getNoteById(noteRequest.getParentId());
-            note.setParent(parentNote);
-        }
-        
-        Note savedNote = noteService.add(note);
-        return ResponseEntity.ok(savedNote);
+    public ResponseEntity<CreateNoteResponse> create(@Valid @RequestBody NoteRequest noteRequest) {
+        Note savedNote = noteService.create(
+                noteRequest.getTitle(),
+                noteRequest.getContent(),
+                noteRequest.getTopicId(),
+                Optional.ofNullable(noteRequest.getParentId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CreateNoteResponse(savedNote.getId(),
+                savedNote.getTitle(), savedNote.getContent(), savedNote.getCreatedAt(), savedNote.getUpdatedAt()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateNote(@PathVariable Long id, @Valid @RequestBody NoteRequest noteRequest) {
-        Note note = noteService.getNoteById(id);
-        note.setTitle(noteRequest.getTitle());
-        note.setContent(noteRequest.getContent());
-        
-        if (noteRequest.getParentId() != null) {
-            Note parentNote = noteService.getNoteById(noteRequest.getParentId());
-            note.setParent(parentNote);
-        } else {
-            note.setParent(null);
-        }
-        
-        Note updatedNote = noteService.update(note, id);
-        return ResponseEntity.ok(updatedNote);
+    public ResponseEntity<CreateNoteResponse> update(@PathVariable Long id,
+            @Valid @RequestBody NoteRequest noteRequest) {
+        Note updatedNote = noteService.update(
+                id,
+                noteRequest.getTitle(),
+                noteRequest.getContent(),
+                noteRequest.getTopicId(),
+                Optional.ofNullable(noteRequest.getParentId()));
+
+        return ResponseEntity.ok(new CreateNoteResponse(
+                updatedNote.getId(),
+                updatedNote.getTitle(),
+                updatedNote.getContent(),
+                updatedNote.getCreatedAt(),
+                updatedNote.getUpdatedAt()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteNote(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         noteService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private String generateDefaultEmbedding() {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < 1536; i++) {
-            if (i > 0) sb.append(",");
-            sb.append("0.0");
-        }
-        sb.append("]");
-        return sb.toString();
-    }
 }
