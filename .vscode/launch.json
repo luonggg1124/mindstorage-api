@@ -28,7 +28,9 @@
         "EMAIL_PASSWORD": "axuqjbbwgazzxjel",
         "EMAIL_HOST": "smtp.gmail.com",
         "EMAIL_PORT": "587",
-        "EMAIL_NAME": "Lwong"
+        "EMAIL_NAME": "Lwong",
+        "WEATHER_API_URL": "https://api.weatherapi.com/v1/current.json",
+        "WEATHER_API_KEY": "bf2b1db39847425a81f20950251903"
       }
     }
   ]

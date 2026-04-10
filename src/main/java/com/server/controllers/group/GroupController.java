@@ -1,13 +1,11 @@
 package com.server.controllers.group;
 
 import com.server.controllers.group.request.CreateGroupRequest;
-
-import com.server.controllers.group.request.UpdateGroupRequest;
 import com.server.controllers.group.response.CreateGroupResponse;
-import com.server.controllers.group.response.UpdateGroupResponse;
 import com.server.models.entities.Group;
-import com.server.repositories.group.dto.DetailGroupDto;
-import com.server.repositories.group.dto.GroupBySpaceDto;
+import com.server.services.group.dto.DetailGroupDto;
+import com.server.services.group.dto.GroupBySpaceDto;
+import com.server.services.others.data.dto.PageResponse;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -20,8 +18,6 @@ import com.server.services.group.GroupService;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/group")
@@ -29,10 +25,12 @@ public class GroupController {
     private final GroupService groupService;
 
     @GetMapping("/by-space/{id}")
-    public ResponseEntity<List<GroupBySpaceDto>> getGroupsBySpace(
-            @PathVariable @Positive(message = "Url không hợp lệ") Long id) {
-        List<GroupBySpaceDto> groups = groupService.getGroupsBySpace(id);
-        return ResponseEntity.status(HttpStatus.OK).body(groups);
+    public ResponseEntity<PageResponse<GroupBySpaceDto>> getGroupsBySpace(
+            @PathVariable @Positive(message = "Url không hợp lệ") Long id,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.status(HttpStatus.OK).body(groupService.getGroupsBySpace(id, q, page, size));
     }
 
     @GetMapping("/{id}")
@@ -50,8 +48,16 @@ public class GroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UpdateGroupResponse> update(@PathVariable Long id, @RequestBody UpdateGroupRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(groupService.update(id, request));
+    public ResponseEntity<CreateGroupResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateGroupRequest request) {
+        Group group = groupService.update(id, request.getName(), request.getDescription(), request.getSpaceId());
+        return ResponseEntity.status(HttpStatus.OK).body(new CreateGroupResponse(
+                group.getId(),
+                group.getName(),
+                group.getDescription(),
+                group.getCreatedAt(),
+                group.getUpdatedAt()));
     }
 
     @DeleteMapping("/{id}")

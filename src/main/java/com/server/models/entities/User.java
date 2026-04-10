@@ -3,7 +3,7 @@ package com.server.models.entities;
 import com.server.models.enums.UserProviderName;
 import com.server.models.extend.Timestamp;
 
-import java.util.List;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.enums.UserGender;
@@ -68,11 +68,4 @@ public class User extends Timestamp {
     @JsonIgnore
     private String intendedUse;
 
-    @Column(name = "hobbies_embedding", nullable = true, columnDefinition = "vector(1536)")
-    @JsonIgnore
-    private float[] hobbiesEmbedding;
-
-    @Column(name = "intended_use_embedding", nullable = true, columnDefinition = "vector(1536)")
-    @JsonIgnore
-    private float[] intendedUseEmbedding;
 }

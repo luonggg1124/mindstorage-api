@@ -1,32 +1,39 @@
 package com.server.repositories.space;
-
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.server.models.entities.Space;
-import com.server.repositories.space.dto.MySpaceDto;
 
 public interface SpaceRepository extends JpaRepository<Space, Long> {
-    @Query("""
-            select new com.server.repositories.space.dto.MySpaceDto(
-                s.id,
-                s.name,
-                s.description,
-                s.imageUrl,
-                (select count(gr.id) from Group gr
-                 where gr.space.id = s.id and gr.deletedAt is null),
-                s.createdAt,
-                s.updatedAt
-            )
-            from Space s
-            where s.creator.id = :creatorId
-              and s.deletedAt is null
-            """)
-    List<MySpaceDto> mySpaces(@Param("creatorId") Long creatorId);
+    @Query(value = """
+            select *
+            from spaces
+            where creator_id = :creatorId
+              and deleted_at is null
+              and (
+                coalesce(:q, '') = ''
+                or name ilike concat('%', :q, '%')
+                or description ilike concat('%', :q, '%')
+              )
+            """,
+            countQuery = """
+            select count(*)
+            from spaces
+            where creator_id = :creatorId
+              and deleted_at is null
+              and (
+                coalesce(:q, '') = ''
+                or name ilike concat('%', :q, '%')
+                or description ilike concat('%', :q, '%')
+              )
+            """,
+            nativeQuery = true)
+    Page<Space> mySpaces(@Param("creatorId") Long creatorId, @Param("q") String q, Pageable pageable);
 
     Optional<Space> findByIdAndDeletedAtIsNull(Long id);
 

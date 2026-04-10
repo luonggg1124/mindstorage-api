@@ -45,11 +45,6 @@ public class Space extends Timestamp {
 
     @Column(name="deleted_at",nullable = true)
     private LocalDateTime deletedAt;
-
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Column(name = "embedding", nullable = false, columnDefinition = "vector(1536)")
-    @JsonIgnore
-    private float[] embedding;
     
     @OneToMany(mappedBy = "space", fetch = FetchType.LAZY)
     @JsonIgnore
@@ -60,4 +55,8 @@ public class Space extends Timestamp {
     @JsonIgnore
     private User creator;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by",nullable = true)
+    @JsonIgnore
+    private User deletedBy;
 }

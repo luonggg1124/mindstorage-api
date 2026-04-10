@@ -1,4 +1,4 @@
-package com.server.controllers.group.request;
+package com.server.controllers.topic.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,11 +8,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateGroupRequest {
+public class CreateTopicRequest {
     @NotBlank(message = "Không được để trống tên")
     private String name;
-    private String description;
-    @NotNull(message = "Không hợp lệ.")
-    @Positive(message = "Không hợp lệ.")
-    private Long spaceId;
+
+    @NotNull(message = "groupId không được để trống")
+    @Positive(message = "groupId không hợp lệ.")
+    private Long groupId;
 }

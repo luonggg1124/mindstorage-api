@@ -37,7 +37,8 @@ public class SecurityConfiguration {
                 .addFilterBefore(rateLimit, JwtTokenValidatorFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
-                        .requestMatchers("/api/space/**", "/api/note/**", "/api/group/**").authenticated()
+                        .requestMatchers("/api/space/**", "/api/note/**", "/api/group/**", "/api/topic/**")
+                                .authenticated()
                         .anyRequest().permitAll())
                 ;
 
