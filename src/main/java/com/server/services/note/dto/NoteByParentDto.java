@@ -2,6 +2,8 @@ package com.server.services.note.dto;
 
 import java.time.LocalDateTime;
 
+import com.server.services.user.dto.SimpleUserDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +15,7 @@ public class NoteByParentDto {
     private Long id;
     private String title;
     private String content;
-    private String topicName;
-    private String parentName;
+    private SimpleUserDto creator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

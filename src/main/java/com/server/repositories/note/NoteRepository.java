@@ -31,4 +31,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
       AND deleted_at IS NULL AND parent_id IS NULL
       """, nativeQuery = true)
   Page<Note> notesByTopic(@Param("topicId") Long topicId, @Param("embedding") String embedding, Pageable pageable);
+
+  Page<Note> findAllByParent_IdAndDeletedAtIsNull(Long parentId, Pageable pageable);
 }

@@ -19,6 +19,7 @@ import com.server.controllers.note.response.CreateNoteResponse;
 import com.server.models.entities.Note;
 import com.server.services.note.NoteService;
 import com.server.services.others.data.dto.PageResponse;
+import com.server.services.note.dto.NoteByParentDto;
 import com.server.services.note.dto.NoteByTopicDto;
 
 import jakarta.validation.Valid;
@@ -38,6 +39,14 @@ public class NoteController {
             @RequestParam(defaultValue = "0") @Positive(message = "Số trang không hợp lệ.") Integer page,
             @RequestParam(defaultValue = "10") @Positive(message = "Số lượng bản ghi trên trang không hợp lệ.") Integer size) {
         return ResponseEntity.ok(noteService.getNotesByTopic(topicId, q, page, size));
+    }
+
+    @GetMapping("/by-parent/{parentId}")
+    public ResponseEntity<PageResponse<NoteByParentDto>> getNotesByParent(
+            @PathVariable Long parentId,
+            @RequestParam(defaultValue = "0") @Positive(message = "Số trang không hợp lệ.") Integer page,
+            @RequestParam(defaultValue = "10") @Positive(message = "Số lượng bản ghi trên trang không hợp lệ.") Integer size) {
+        return ResponseEntity.ok(noteService.notesByParent(parentId, page, size));
     }
 
     @PostMapping
