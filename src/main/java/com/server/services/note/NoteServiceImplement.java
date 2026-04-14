@@ -16,6 +16,7 @@ import com.server.models.entities.User;
 import com.server.repositories.note.NoteRepository;
 import com.server.repositories.topic.TopicRepository;
 import com.server.services.auth.AuthService;
+import com.server.services.note.dto.NoteByParentDto;
 import com.server.services.note.dto.NoteByTopicDto;
 import com.server.services.others.data.DataService;
 import com.server.services.others.data.dto.PageResponse;
@@ -76,11 +77,32 @@ public class NoteServiceImplement implements NoteService {
         return noteRepository.findAllByDeletedAtIsNull();
     }
 
-    @Override
-    public List<Note> getListByKeyWord(String keyWord) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+  @Override
+  public PageResponse<NoteByParentDto> notesByParent(Long parentId, Integer page, Integer size) {
+    int pageIndex = page == null ? 0 : Math.max(page - 1, 0);
+    Pageable pageable = PageRequest.of(pageIndex, size);
+    Page<Note> pageData = noteRepository.findAllByParent_IdAndDeletedAtIsNull(parentId, pageable);
+    Page<NoteByParentDto> notes = pageData.map(this::toNoteByParentDto);
+    return new PageResponse<NoteByParentDto>(notes.getContent(), notes.getTotalElements(), notes.getNumber() + 1, notes.getSize());
+  }
 
+    private NoteByParentDto toNoteByParentDto(Note note) {
+        User u = note.getCreator();
+        SimpleUserDto creator = u == null ? null : new SimpleUserDto(
+                u.getId(),
+                u.getUsername(),
+                u.getEmail(),
+                u.getAvatarUrl(),
+                u.getFullName(),
+                u.getGender());
+        return new NoteByParentDto(
+                note.getId(),
+                note.getTitle(),
+                note.getContent(),
+                creator,
+                note.getCreatedAt(),
+                note.getUpdatedAt());
+    }
     @Override
     public Note create(String title, String content, Long topicId, Optional<Long> parentId) {
         User currentUser = authService.authUser();

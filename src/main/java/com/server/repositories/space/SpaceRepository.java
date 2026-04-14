@@ -35,6 +35,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
             nativeQuery = true)
     Page<Space> mySpaces(@Param("creatorId") Long creatorId, @Param("q") String q, Pageable pageable);
 
+    
     Optional<Space> findByIdAndDeletedAtIsNull(Long id);
 
     boolean existsById(Long id);
