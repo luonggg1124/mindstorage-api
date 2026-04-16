@@ -7,9 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GetWeatherRequest {
-    @NotBlank(message = "Latitude is required")
+    @NotBlank(message = "Query latitude is required")
     private String latitude;
-    @NotBlank(message = "Longitude is required")
+    @NotBlank(message = "Query longitude is required")
     private String longitude;
 
     private String lang;
