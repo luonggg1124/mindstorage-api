@@ -1,7 +1,7 @@
-package com.server.models.enums;
+    package com.server.models.enums;
 
-public enum RoleAction {
-    EDITOR,
-    VIEWER,
-    OWNER
-}
+    public enum RoleAction {
+        EDITOR,
+        VIEWER,
+        OWNER
+    }

@@ -1,5 +1,7 @@
 package com.server.models.entities;
 
+import java.util.UUID;
+
 import com.server.models.enums.RoleAction;
 import com.server.models.extend.Timestamp;
 
@@ -13,13 +15,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name="space_members")
+@Getter
+@Setter
+@NoArgsConstructor
 public class SpaceMember extends Timestamp {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "space_id")

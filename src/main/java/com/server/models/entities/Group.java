@@ -1,6 +1,7 @@
 package com.server.models.entities;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.extend.Timestamp;
@@ -26,8 +27,8 @@ import lombok.Setter;
 @Table(name = "groups")
 public class Group extends Timestamp {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name;

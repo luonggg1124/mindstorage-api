@@ -1,12 +1,14 @@
 package com.server.controllers.space.response;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 public class CreateSpaceResponse {
-    private Long id;
+    private UUID id;
     private String name;
     private String description;
     private String createdAt;

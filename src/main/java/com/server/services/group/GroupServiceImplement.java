@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -29,7 +30,7 @@ public class GroupServiceImplement implements GroupService {
     private final TopicRepository topicRepository;
 
     @Override
-    public PageResponse<GroupBySpaceDto> getGroupsBySpace(Long spaceId, String q, Integer page, Integer size) {
+    public PageResponse<GroupBySpaceDto> getGroupsBySpace(UUID spaceId, String q, Integer page, Integer size) {
         if (!spaceRepository.existsById(spaceId)) {
             throw new NotFoundException("Không tìm thấy không gian");
         }
@@ -38,11 +39,11 @@ public class GroupServiceImplement implements GroupService {
         String search = (q == null || q.isBlank()) ? null : q.trim();
         Page<Group> groups = groupRepository.groupsBySpace(spaceId, search, pageable);
 
-        List<Long> groupIds = groups.getContent().stream().map(Group::getId).toList();
-        Map<Long, Long> topicCounts = new HashMap<>();
+        List<UUID> groupIds = groups.getContent().stream().map(Group::getId).toList();
+        Map<UUID, Long> topicCounts = new HashMap<>();
         if (!groupIds.isEmpty()) {
             for (Object[] row : topicRepository.countByGroupIds(groupIds)) {
-                topicCounts.put((Long) row[0], (Long) row[1]);
+                topicCounts.put((UUID) row[0], (Long) row[1]);
             }
         }
 
@@ -60,14 +61,14 @@ public class GroupServiceImplement implements GroupService {
     }
    
 
-    public DetailGroupDto detailGroup(Long id) {
+    public DetailGroupDto detailGroup(UUID id) {
         Group group = groupRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
                 () -> new NotFoundException("Không tìm thấy nhóm"));
         return new DetailGroupDto(group.getId(), group.getName(), group.getDescription(), group.getCreatedAt(), group.getUpdatedAt());
     }
 
     @Override
-    public Group create(String name, String description, Long spaceId) {
+    public Group create(String name, String description, UUID spaceId) {
         Space space = spaceRepository.findById(spaceId).orElseThrow(
                 () -> new NotFoundException("Không tìm thấy không gian"));
         Group newGroup = new Group();
@@ -79,7 +80,7 @@ public class GroupServiceImplement implements GroupService {
     }
 
     @Override
-    public Group update(Long id, String name, String description, Long spaceId) {
+    public Group update(UUID id, String name, String description, UUID spaceId) {
         Group group = groupRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
         Space space = spaceRepository.findByIdAndDeletedAtIsNull(spaceId)
@@ -93,7 +94,7 @@ public class GroupServiceImplement implements GroupService {
     }
 
     @Override
-    public void delete(Long groupId) {
+    public void delete(UUID groupId) {
         Group group = groupRepository.findByIdAndDeletedAtIsNull(groupId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
         group.setDeletedAt(LocalDateTime.now());

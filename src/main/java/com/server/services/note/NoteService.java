@@ -2,8 +2,7 @@ package com.server.services.note;
 
 import java.util.List;
 import java.util.Optional;
-
-
+import java.util.UUID;
 
 import com.server.models.entities.Note;
 import com.server.services.note.dto.NoteByParentDto;
@@ -13,16 +12,16 @@ import com.server.services.others.data.dto.PageResponse;
 
 public interface NoteService {
 
-    PageResponse<NoteByTopicDto> getNotesByTopic(Long topicId, String keyWord, Integer page, Integer size);
+    PageResponse<NoteByTopicDto> getNotesByTopic(UUID topicId, String keyWord, Integer page, Integer size);
     List<Note> getAllListNote();
 
-    PageResponse<NoteByParentDto> notesByParent(Long parentId, Integer page, Integer size);
+    PageResponse<NoteByParentDto> notesByParent(UUID parentId, Integer page, Integer size);
 
-    Note create(String title, String content, Long topicId, Optional<Long> parentId);
+    Note create(String title, String content, UUID topicId, Optional<UUID> parentId);
 
-    Note update(Long id, String title, String content, Long topicId, Optional<Long> parentId);
+    Note update(UUID id, String title, String content, UUID topicId, Optional<UUID> parentId);
 
-    void delete(Long id);
+    void delete(UUID id);
 
-    Note getNoteById(Long id);
+    Note getNoteById(UUID id);
 }

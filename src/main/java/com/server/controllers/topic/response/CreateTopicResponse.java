@@ -1,6 +1,7 @@
 package com.server.controllers.topic.response;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,9 +9,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class CreateTopicResponse {
-    private Long id;
+    private UUID id;
     private String name;
-    private Long groupId;
+    private UUID groupId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

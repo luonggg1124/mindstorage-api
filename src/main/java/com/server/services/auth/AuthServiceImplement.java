@@ -144,7 +144,6 @@ public class AuthServiceImplement implements AuthService {
         if (cached instanceof User cachedUser) {
             return cachedUser;
         }
-
         // Fallback to database and re-cache
         User user = userRepository.findById(Long.parseLong(userId))
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));

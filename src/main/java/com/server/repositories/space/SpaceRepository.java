@@ -1,5 +1,7 @@
 package com.server.repositories.space;
+
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.server.models.entities.Space;
 
-public interface SpaceRepository extends JpaRepository<Space, Long> {
+public interface SpaceRepository extends JpaRepository<Space, UUID> {
     @Query(value = """
             select *
             from spaces
@@ -35,8 +37,10 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
             nativeQuery = true)
     Page<Space> mySpaces(@Param("creatorId") Long creatorId, @Param("q") String q, Pageable pageable);
 
-    
-    Optional<Space> findByIdAndDeletedAtIsNull(Long id);
 
-    boolean existsById(Long id);
+    long countByCreator_IdAndDeletedAtIsNull(Long creatorId);
+    
+    Optional<Space> findByIdAndDeletedAtIsNull(UUID id);
+
+    boolean existsById(UUID id);
 }

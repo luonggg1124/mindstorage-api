@@ -3,6 +3,7 @@ package com.server.services.note;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +36,7 @@ public class NoteServiceImplement implements NoteService {
     private final DataService dataService;
 
     @Override
-    public PageResponse<NoteByTopicDto> getNotesByTopic(Long topicId, String keyWord, Integer page, Integer size) {
+    public PageResponse<NoteByTopicDto> getNotesByTopic(UUID topicId, String keyWord, Integer page, Integer size) {
         int pageIndex = page == null ? 0 : Math.max(page - 1, 0);
         Pageable pageable = PageRequest.of(pageIndex, size);
 
@@ -58,7 +59,6 @@ public class NoteServiceImplement implements NoteService {
         SimpleUserDto creator = u == null ? null : new SimpleUserDto(
                 u.getId(),
                 u.getUsername(),
-                u.getEmail(),
                 u.getAvatarUrl(),
                 u.getFullName(),
                 u.getGender());
@@ -78,7 +78,7 @@ public class NoteServiceImplement implements NoteService {
     }
 
   @Override
-  public PageResponse<NoteByParentDto> notesByParent(Long parentId, Integer page, Integer size) {
+  public PageResponse<NoteByParentDto> notesByParent(UUID parentId, Integer page, Integer size) {
     int pageIndex = page == null ? 0 : Math.max(page - 1, 0);
     Pageable pageable = PageRequest.of(pageIndex, size);
     Page<Note> pageData = noteRepository.findAllByParent_IdAndDeletedAtIsNull(parentId, pageable);
@@ -91,7 +91,6 @@ public class NoteServiceImplement implements NoteService {
         SimpleUserDto creator = u == null ? null : new SimpleUserDto(
                 u.getId(),
                 u.getUsername(),
-                u.getEmail(),
                 u.getAvatarUrl(),
                 u.getFullName(),
                 u.getGender());
@@ -104,7 +103,7 @@ public class NoteServiceImplement implements NoteService {
                 note.getUpdatedAt());
     }
     @Override
-    public Note create(String title, String content, Long topicId, Optional<Long> parentId) {
+    public Note create(String title, String content, UUID topicId, Optional<UUID> parentId) {
         User currentUser = authService.authUser();
         Topic topic = topicRepository.findById(topicId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy chủ đề với"));
@@ -156,7 +155,7 @@ public class NoteServiceImplement implements NoteService {
     }
 
     @Override
-    public Note update(Long id, String title, String content, Long topicId, Optional<Long> parentId) {
+    public Note update(UUID id, String title, String content, UUID topicId, Optional<UUID> parentId) {
         User currentUser = authService.authUser();
 
         Note note = noteRepository.findByIdAndDeletedAtIsNull(id)
@@ -194,7 +193,7 @@ public class NoteServiceImplement implements NoteService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(UUID id) {
         User currentUser = authService.authUser();
         Note note = noteRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy."));
@@ -204,7 +203,7 @@ public class NoteServiceImplement implements NoteService {
     }
 
     @Override
-    public Note getNoteById(Long id) {
+    public Note getNoteById(UUID id) {
         return noteRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Note not found with id: " + id));
     }

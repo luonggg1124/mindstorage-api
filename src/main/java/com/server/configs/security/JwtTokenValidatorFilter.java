@@ -74,9 +74,7 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                // Get user from service (will get from cache or database and cache it)
                 User user = authService.userFromToken(token);
-
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {

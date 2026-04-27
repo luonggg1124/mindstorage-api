@@ -3,6 +3,7 @@ package com.server.models.entities;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -31,8 +32,8 @@ import lombok.Setter;
 @Table(name = "notes")
 public class Note extends Timestamp{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;    
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;    
 
     @Column(name = "title", nullable = false)
     private String title;

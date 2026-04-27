@@ -1,18 +1,20 @@
 package com.server.services.group;
 
+import java.util.UUID;
+
 import com.server.models.entities.Group;
 import com.server.services.group.dto.DetailGroupDto;
 import com.server.services.group.dto.GroupBySpaceDto;
 import com.server.services.others.data.dto.PageResponse;
 
 public interface GroupService {
-    PageResponse<GroupBySpaceDto> getGroupsBySpace(Long spaceId, String q, Integer page, Integer size);
+    PageResponse<GroupBySpaceDto> getGroupsBySpace(UUID spaceId, String q, Integer page, Integer size);
 
-    Group create(String name, String description, Long spaceId);
+    Group create(String name, String description, UUID spaceId);
 
-    DetailGroupDto detailGroup(Long id);
+    DetailGroupDto detailGroup(UUID id);
 
-    Group update(Long id, String name, String description, Long spaceId);
+    Group update(UUID id, String name, String description, UUID spaceId);
 
-    void delete(Long groupId);
+    void delete(UUID groupId);
 }

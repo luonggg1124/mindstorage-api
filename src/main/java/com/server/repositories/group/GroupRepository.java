@@ -2,6 +2,7 @@ package com.server.repositories.group;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.server.models.entities.Group;
 
-public interface GroupRepository extends JpaRepository<Group, Long> {
+public interface GroupRepository extends JpaRepository<Group, UUID> {
 
     @Query(value = """
             select *
@@ -37,7 +38,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             """,
             nativeQuery = true)
     Page<Group> groupsBySpace(
-            @Param("spaceId") Long spaceId,
+            @Param("spaceId") UUID spaceId,
             @Param("q") String q,
             Pageable pageable);
 
@@ -48,8 +49,8 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
               and g.deletedAt is null
             group by g.space.id
             """)
-    List<Object[]> countBySpaceIds(@Param("spaceIds") List<Long> spaceIds);
+    List<Object[]> countBySpaceIds(@Param("spaceIds") List<UUID> spaceIds);
 
-    Optional<Group> findByIdAndDeletedAtIsNull(Long id);
-    boolean existsById(Long id);
+    Optional<Group> findByIdAndDeletedAtIsNull(UUID id);
+    boolean existsById(UUID id);
 }
