@@ -18,4 +18,8 @@ public interface NotificationService {
     PageResponse<MyNotificationDto> getMyNotifications(String q, Integer page, Integer size);
 
     long countUnread();
+
+    boolean markAllRead();
+
+    boolean markRead(UUID id);
 }

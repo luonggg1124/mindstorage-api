@@ -1,5 +1,6 @@
 package com.server.services.notification;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -19,9 +20,12 @@ import com.server.services.notification.dto.MyNotificationDto;
 import com.server.services.others.data.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImplement implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -30,6 +34,7 @@ public class NotificationServiceImplement implements NotificationService {
 
     @Override
     public void sendNotification(Long userId, Object data) {
+        log.info("Sending notification to user: {}", userId);
         simpMessagingTemplate.convertAndSendToUser(userId.toString(), "/queue/notifications", data);
     }
 
@@ -97,5 +102,21 @@ public class NotificationServiceImplement implements NotificationService {
     public long countUnread() {
         User user = authService.authUser();
         return notificationRepository.countByUserIdAndIsReadFalseAndDeletedAtIsNull(user.getId());
+    }
+
+    @Override
+    @Transactional
+    public boolean markAllRead() {
+        User user = authService.authUser();
+        notificationRepository.markAllRead(user.getId(), LocalDateTime.now());
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean markRead(UUID id) {
+        User user = authService.authUser();
+        int updated = notificationRepository.markRead(id, user.getId(), LocalDateTime.now());
+        return updated > 0;
     }
 }

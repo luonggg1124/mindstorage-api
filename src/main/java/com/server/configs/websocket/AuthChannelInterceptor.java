@@ -9,7 +9,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +39,11 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
             if(user == null){
                 throw new UnauthorizedException("UNAUTHORIZED");
             }
-            Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+            // Use userId as Principal name so /user destinations match convertAndSendToUser(userId.toString(), ...)
+            String principalName = user.getId().toString();
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(principalName, null, Collections.emptyList());
+            authentication.setDetails(user);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             accessor.setUser(authentication);
         }

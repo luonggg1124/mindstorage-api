@@ -22,6 +22,7 @@ public interface SpaceRepository extends JpaRepository<Space, UUID> {
                 or name ilike concat('%', :q, '%')
                 or description ilike concat('%', :q, '%')
               )
+            order by updated_at desc nulls last, created_at desc
             """,
             countQuery = """
             select count(*)
