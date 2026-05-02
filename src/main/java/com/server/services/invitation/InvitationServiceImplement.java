@@ -95,12 +95,12 @@ public class InvitationServiceImplement implements InvitationService {
                 : NotificationType.INVITE_TO_JOIN_SPACE;
         Map<String, Object> data = Map.of(
                 "invitationId", savedInvitation.getId(),
+                "invitationStatus", savedInvitation.getStatus(),
                 "entityId", entityId,
                 "entityType", entityType,
                 "entityName", entityName,
                 "senderId", user.getId(),
-                "senderName", user.getFullName()
-            );
+                "senderName", user.getFullName());
         Notification notification = notificationService.create(
                 savedInvitation.getInviteeId(),
                 title,
@@ -114,26 +114,29 @@ public class InvitationServiceImplement implements InvitationService {
 
     @Transactional
     @Override
-    public void accept(UUID id){
+    public void accept(UUID id) {
         User user = authService.authUser();
 
         Invitation inv = invitationRepository.findById(id).orElseThrow(() -> new NotFoundException("Không thể mời."));
-        if(!inv.getInviteeId().equals(user.getId())){
+        if (!inv.getInviteeId().equals(user.getId())) {
             throw new ConflictException("Không có quyền", "invitationId");
         }
-        if(inv.getStatus() != InvitationStatus.PENDING){
+        if (inv.getStatus() != InvitationStatus.PENDING) {
             throw new ConflictException("Không hợp lệ", "status");
         }
-        if(isAlreadyMember(user.getId(), inv.getEntityId(), inv.getType())){
+        if (isAlreadyMember(user.getId(), inv.getEntityId(), inv.getType())) {
             throw new ConflictException("Đã là thành viên", "userId");
         }
         inv.setStatus(InvitationStatus.ACCEPTED);
-        inv.setRespondedAt(LocalDateTime.now());
+        LocalDateTime respondedAt = LocalDateTime.now();
+        inv.setRespondedAt(respondedAt);
         invitationRepository.save(inv);
-        
-        switch(inv.getType()){
+        notificationService.updateInvitationStatusData(inv.getId(), inv.getStatus(), respondedAt);
+
+        switch (inv.getType()) {
             case GROUP -> {
-                Group group = groupRepository.findById(inv.getEntityId()).orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
+                Group group = groupRepository.findById(inv.getEntityId())
+                        .orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
                 GroupMember groupMember = new GroupMember();
                 groupMember.setUser(user);
                 groupMember.setGroup(group);
@@ -141,7 +144,8 @@ public class InvitationServiceImplement implements InvitationService {
                 groupMemberRepository.save(groupMember);
             }
             case SPACE -> {
-                Space space = spaceRepository.findById(inv.getEntityId()).orElseThrow(() -> new NotFoundException("Không tìm thấy không gian"));
+                Space space = spaceRepository.findById(inv.getEntityId())
+                        .orElseThrow(() -> new NotFoundException("Không tìm thấy không gian"));
                 SpaceMember spaceMember = new SpaceMember();
                 spaceMember.setUser(user);
                 spaceMember.setSpace(space);
@@ -149,35 +153,36 @@ public class InvitationServiceImplement implements InvitationService {
                 spaceMemberRepository.save(spaceMember);
             }
         }
-        notificationService.sendNotification(inv.getInviterId(), 
-        Map.of(
-            "type", InvitationStatus.ACCEPTED,
-            "invitationId", inv.getId(),
-            "userId", user.getId()
-        ));
+        notificationService.sendNotification(inv.getInviterId(),
+                Map.of(
+                        "type", InvitationStatus.ACCEPTED,
+                        "invitationId", inv.getId(),
+                        "userId", user.getId()));
     }
-
 
     @Transactional
     @Override
-    public void reject(UUID id){
+    public void reject(UUID id) {
         User user = authService.authUser();
-        Invitation inv = invitationRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy lời mời"));
-        if(!inv.getInviteeId().equals(user.getId())){
-            throw new ConflictException("Không có quyền","inviteId");
+        Invitation inv = invitationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy lời mời"));
+        if (!inv.getInviteeId().equals(user.getId())) {
+            throw new ConflictException("Không có quyền", "inviteId");
         }
-        if(inv.getStatus() != InvitationStatus.PENDING ){
-            throw new ConflictException("Không hợp lệ","status");
+        if (inv.getStatus() != InvitationStatus.PENDING) {
+            throw new ConflictException("Không hợp lệ", "status");
         }
         inv.setStatus(InvitationStatus.REJECTED);
-        inv.setRespondedAt(LocalDateTime.now());
+        LocalDateTime respondedAt = LocalDateTime.now();
+        inv.setRespondedAt(respondedAt);
         invitationRepository.save(inv);
+        notificationService.updateInvitationStatusData(inv.getId(), inv.getStatus(), respondedAt);
         notificationService.sendNotification(inv.getInviterId(), Map.of(
-            "type", InvitationStatus.REJECTED,
-            "invitationId", inv.getId()
-        ));
+                "type", InvitationStatus.REJECTED,
+                "invitationId", inv.getId()));
 
     }
+
     private String buildTitle(InvitationType entityType) {
         return entityType == InvitationType.GROUP
                 ? "Lời mời vào nhóm"
@@ -207,10 +212,12 @@ public class InvitationServiceImplement implements InvitationService {
             case GROUP -> groupRepository.findById(entityId).map(Group::getName).orElse(null);
         };
     }
-    private boolean isAlreadyMember(Long userId, UUID entityId, InvitationType type){
-        return switch (type){
+
+    private boolean isAlreadyMember(Long userId, UUID entityId, InvitationType type) {
+        return switch (type) {
             case GROUP -> groupMemberRepository.existsByUserIdAndGroupId(userId, entityId);
             case SPACE -> spaceMemberRepository.existsByUserIdAndSpaceId(userId, entityId);
         };
     }
+
 }

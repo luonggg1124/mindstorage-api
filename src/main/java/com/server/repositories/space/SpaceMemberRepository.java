@@ -49,4 +49,12 @@ public interface SpaceMemberRepository extends JpaRepository<SpaceMember, UUID> 
             """,
             nativeQuery = true)
     Page<SpaceMember> membersBySpaceId(@Param("spaceId") UUID spaceId, @Param("q") String q, Pageable pageable);
+
+    @Query("""
+            select sm.space.id, sm.role
+            from com.server.models.entities.SpaceMember sm
+            where sm.user.id = :userId
+              and sm.space.id in :spaceIds
+            """)
+    List<Object[]> rolesByUserAndSpaceIds(@Param("userId") Long userId, @Param("spaceIds") List<UUID> spaceIds);
 }

@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.server.cache.AuthCache;
+import com.server.constants.AuthCache;
 import com.server.models.entities.User;
 import com.server.services.auth.AuthService;
 

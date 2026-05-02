@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.server.repositories.group.GroupRepository;
 import com.server.services.group.dto.DetailGroupDto;
 import com.server.services.group.dto.GroupBySpaceDto;
@@ -68,6 +69,7 @@ public class GroupServiceImplement implements GroupService {
     }
 
     @Override
+    @Transactional
     public Group create(String name, String description, UUID spaceId) {
         Space space = spaceRepository.findById(spaceId).orElseThrow(
                 () -> new NotFoundException("Không tìm thấy không gian"));
@@ -75,11 +77,15 @@ public class GroupServiceImplement implements GroupService {
         newGroup.setName(name);
         newGroup.setDescription(description);
         newGroup.setSpace(space);
+        LocalDateTime now = LocalDateTime.now();
+        newGroup.setLastActivityAt(now);
+        spaceRepository.touchLastActivityAt(spaceId, now);
        
         return groupRepository.save(newGroup);
     }
 
     @Override
+    @Transactional
     public Group update(UUID id, String name, String description, UUID spaceId) {
         Group group = groupRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
@@ -89,15 +95,25 @@ public class GroupServiceImplement implements GroupService {
         group.setName(name);
         group.setDescription(description);
         group.setSpace(space);
+        LocalDateTime now = LocalDateTime.now();
+        group.setLastActivityAt(now);
+        groupRepository.touchLastActivityAt(id, now);
+        spaceRepository.touchLastActivityAt(spaceId, now);
 
         return groupRepository.save(group);
     }
 
     @Override
+    @Transactional
     public void delete(UUID groupId) {
         Group group = groupRepository.findByIdAndDeletedAtIsNull(groupId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy nhóm"));
-        group.setDeletedAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        group.setDeletedAt(now);
+        group.setLastActivityAt(now);
         groupRepository.save(group);
+        if (group.getSpace() != null) {
+            spaceRepository.touchLastActivityAt(group.getSpace().getId(), now);
+        }
     }
 }

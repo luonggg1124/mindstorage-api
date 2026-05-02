@@ -52,4 +52,29 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
               and n.isRead = false
             """)
     int markRead(@Param("id") UUID id, @Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
+
+    @Modifying
+    @Query(value = """
+            update notifications
+            set data = jsonb_set(
+                        jsonb_set(
+                            coalesce(data, '{}'::jsonb),
+                            '{invitationStatus}',
+                            to_jsonb(cast(:status as text)),
+                            true
+                        ),
+                        '{respondedAt}',
+                        to_jsonb(cast(:respondedAt as text)),
+                        true
+                    ),
+                is_read = true,
+                read_at = coalesce(read_at, :respondedAt),
+                updated_at = now()
+            where deleted_at is null
+              and data is not null
+              and data ->> 'invitationId' = cast(:invitationId as text)
+            """, nativeQuery = true)
+    int updateInvitationStatusData(@Param("invitationId") UUID invitationId,
+            @Param("status") String status,
+            @Param("respondedAt") LocalDateTime respondedAt);
 }

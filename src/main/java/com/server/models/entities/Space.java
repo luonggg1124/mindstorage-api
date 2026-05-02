@@ -55,6 +55,8 @@ public class Space extends Timestamp {
     @JoinColumn(name = "creator_id")
     @JsonIgnore
     private User creator;
+    @Column(name = "last_activity_at", nullable = true)
+    private LocalDateTime lastActivityAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by",nullable = true)

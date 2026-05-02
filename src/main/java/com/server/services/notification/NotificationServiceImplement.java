@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.server.models.entities.Notification;
 import com.server.models.entities.User;
+import com.server.models.enums.InvitationStatus;
 import com.server.models.enums.NotificationType;
 import com.server.repositories.notification.NotificationRepository;
 import com.server.services.auth.AuthService;
@@ -118,5 +119,14 @@ public class NotificationServiceImplement implements NotificationService {
         User user = authService.authUser();
         int updated = notificationRepository.markRead(id, user.getId(), LocalDateTime.now());
         return updated > 0;
+    }
+
+    @Override
+    @Transactional
+    public void updateInvitationStatusData(UUID invitationId, InvitationStatus status, LocalDateTime respondedAt) {
+        notificationRepository.updateInvitationStatusData(
+                invitationId,
+                status.name(),
+                respondedAt);
     }
 }

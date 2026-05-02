@@ -20,6 +20,7 @@ import com.server.repositories.follower.FollowerRepository;
 import com.server.repositories.space.SpaceMemberRepository;
 import com.server.repositories.space.SpaceRepository;
 import com.server.repositories.user.UserRepository;
+import com.server.services.attachment.AttachmentService;
 import com.server.services.auth.AuthService;
 import com.server.services.others.data.dto.PageResponse;
 import com.server.services.user.dto.InviteUserDto;
@@ -31,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImplement implements UserService {
+    private final AttachmentService fileService;
+
     private final AuthService authService;
     private final UserRepository userRepository;
     private final FollowerRepository followerRepository;
@@ -38,7 +41,6 @@ public class UserServiceImplement implements UserService {
     private final SpaceMemberRepository spaceMemberRepository;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
-
     @Override
     public boolean validateUsernamePassword(String username, String password) {
         if (username == null || username.trim().isEmpty()) {
@@ -62,7 +64,7 @@ public class UserServiceImplement implements UserService {
         long followingCount = followerRepository.countByFollowing_Id(user.getId());
             long spacesCount = spaceRepository.countByCreator_IdAndDeletedAtIsNull(user.getId());
             long spaceMembersCount = spaceMemberRepository.countByUser_IdAndSpace_DeletedAtIsNull(user.getId());
-        return new MyProfileDto(user.getId(), user.getUsername(), user.getFullName(), user.getAvatarUrl(),
+        return new MyProfileDto(user.getId(), user.getUsername(), user.getFullName(), fileService.buildPublicUrl(user.getAvatarFileKey()),
                 user.getEmail(), user.getHobbies(), user.getGender(), followersCount, followingCount, spacesCount, spaceMembersCount);
     }
 
@@ -78,7 +80,7 @@ public class UserServiceImplement implements UserService {
                 .map(u -> new SimpleUserDto(
                         u.getId(),
                         u.getUsername(),
-                        u.getAvatarUrl(),
+                        fileService.buildPublicUrl(u.getAvatarFileKey()),
                         u.getFullName(),
                         u.getGender()))
                 .collect(Collectors.toList());
@@ -123,7 +125,7 @@ public class UserServiceImplement implements UserService {
                 .map(u -> new InviteUserDto(
                         u.getId(),
                         u.getUsername(),
-                        u.getAvatarUrl(),
+                        fileService.buildPublicUrl(u.getAvatarFileKey()),
                         u.getFullName(),
                         u.getGender(),
                         memberUserIds.contains(u.getId())))
@@ -131,5 +133,5 @@ public class UserServiceImplement implements UserService {
 
         return new PageResponse<>(data, users.getTotalElements(), users.getNumber() + 1, users.getSize());
     }
-
+    
 }

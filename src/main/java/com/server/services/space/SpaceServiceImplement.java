@@ -16,14 +16,18 @@ import com.server.exceptions.NotFoundException;
 import com.server.models.entities.Space;
 import com.server.models.entities.SpaceMember;
 import com.server.models.entities.User;
+import com.server.models.enums.RoleAction;
 import com.server.repositories.group.GroupRepository;
 import com.server.repositories.space.SpaceMemberRepository;
 import com.server.repositories.space.SpaceRepository;
+import com.server.repositories.user.UserRepository;
+import com.server.services.attachment.AttachmentService;
 import com.server.services.auth.AuthService;
 import com.server.services.others.data.dto.PageResponse;
 import com.server.services.space.dto.DetailSpaceDto;
 import com.server.services.space.dto.MySpaceDto;
 import com.server.services.space.dto.SpaceMemberUserDto;
+import com.server.services.user.dto.SimpleUserDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +40,8 @@ public class SpaceServiceImplement implements SpaceService {
     private final AuthService authService;
     private final GroupRepository groupRepository;
     private final SpaceMemberRepository spaceMemberRepository;
-
+    private final UserRepository userRepository;
+    private final AttachmentService fileService;
     @Override
     public PageResponse<MySpaceDto> mySpaces(String q, Integer page, Integer size) {
         User currentUser = authService.authUser();
@@ -53,6 +58,30 @@ public class SpaceServiceImplement implements SpaceService {
             }
         }
 
+        Map<UUID, RoleAction> rolesBySpaceId = new HashMap<>();
+        if (!spaceIds.isEmpty()) {
+            for (Object[] row : spaceMemberRepository.rolesByUserAndSpaceIds(currentUser.getId(), spaceIds)) {
+                rolesBySpaceId.put((UUID) row[0], (RoleAction) row[1]);
+            }
+        }
+
+        List<Long> ownerIds = spaces.getContent().stream()
+                .map(s -> s.getCreator() == null ? null : s.getCreator().getId())
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        final Map<Long, SimpleUserDto> ownersById = ownerIds.isEmpty()
+                ? Map.of()
+                : userRepository.findAllById(ownerIds).stream()
+                        .collect(Collectors.toMap(
+                                User::getId,
+                                u -> new SimpleUserDto(
+                                        u.getId(),
+                                        u.getUsername(),
+                                        fileService.buildPublicUrl(u.getAvatarFileKey()),
+                                        u.getFullName(),
+                                        u.getGender())));
+
         List<MySpaceDto> data = spaces.getContent().stream()
                 .map(s -> new MySpaceDto(
                         s.getId(),
@@ -60,6 +89,11 @@ public class SpaceServiceImplement implements SpaceService {
                         s.getDescription(),
                         s.getImageUrl(),
                         groupCounts.getOrDefault(s.getId(), 0L),
+                        s.getCreator() == null ? null : ownersById.get(s.getCreator().getId()),
+                        s.getCreator() != null && currentUser.getId().equals(s.getCreator().getId())
+                                ? RoleAction.OWNER
+                                : rolesBySpaceId.getOrDefault(s.getId(), RoleAction.VIEWER),
+                        s.getLastActivityAt(),
                         s.getCreatedAt(),
                         s.getUpdatedAt()))
                 .collect(Collectors.toList());
@@ -138,7 +172,7 @@ public class SpaceServiceImplement implements SpaceService {
                     return new SpaceMemberUserDto(
                             u.getId(),
                             u.getUsername(),
-                            u.getAvatarUrl(),
+                            fileService.buildPublicUrl(u.getAvatarFileKey()),
                             u.getFullName(),
                             u.getGender(),
                             sm.getCreatedAt(),

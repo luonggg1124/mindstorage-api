@@ -3,6 +3,7 @@ package com.server.services.notification;
 import java.util.UUID;
 
 import com.server.models.entities.Notification;
+import com.server.models.enums.InvitationStatus;
 import com.server.models.enums.NotificationType;
 import com.server.services.notification.dto.MyNotificationDto;
 import com.server.services.others.data.dto.PageResponse;
@@ -22,4 +23,6 @@ public interface NotificationService {
     boolean markAllRead();
 
     boolean markRead(UUID id);
+
+    void updateInvitationStatusData(UUID invitationId, InvitationStatus status, java.time.LocalDateTime respondedAt);
 }

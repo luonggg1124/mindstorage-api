@@ -1,6 +1,5 @@
 package com.server.models.entities;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.server.models.enums.RoleAction;
@@ -27,7 +26,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GroupMember extends Timestamp {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne

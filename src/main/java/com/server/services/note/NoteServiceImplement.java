@@ -14,8 +14,13 @@ import com.server.exceptions.NotFoundException;
 import com.server.models.entities.Note;
 import com.server.models.entities.Topic;
 import com.server.models.entities.User;
+import com.server.models.entities.Group;
+import com.server.models.entities.Space;
+import com.server.repositories.group.GroupRepository;
+import com.server.repositories.space.SpaceRepository;
 import com.server.repositories.note.NoteRepository;
 import com.server.repositories.topic.TopicRepository;
+import com.server.services.attachment.AttachmentService;
 import com.server.services.auth.AuthService;
 import com.server.services.note.dto.NoteByParentDto;
 import com.server.services.note.dto.NoteByTopicDto;
@@ -25,6 +30,7 @@ import com.server.services.user.dto.SimpleUserDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +40,9 @@ public class NoteServiceImplement implements NoteService {
     private final TopicRepository topicRepository;
     private final AuthService authService;
     private final DataService dataService;
+    private final AttachmentService fileService;
+    private final GroupRepository groupRepository;
+    private final SpaceRepository spaceRepository;
 
     @Override
     public PageResponse<NoteByTopicDto> getNotesByTopic(UUID topicId, String keyWord, Integer page, Integer size) {
@@ -59,7 +68,7 @@ public class NoteServiceImplement implements NoteService {
         SimpleUserDto creator = u == null ? null : new SimpleUserDto(
                 u.getId(),
                 u.getUsername(),
-                u.getAvatarUrl(),
+                fileService.buildPublicUrl(u.getAvatarFileKey()),
                 u.getFullName(),
                 u.getGender());
 
@@ -91,7 +100,7 @@ public class NoteServiceImplement implements NoteService {
         SimpleUserDto creator = u == null ? null : new SimpleUserDto(
                 u.getId(),
                 u.getUsername(),
-                u.getAvatarUrl(),
+                fileService.buildPublicUrl(u.getAvatarFileKey()),
                 u.getFullName(),
                 u.getGender());
         return new NoteByParentDto(
@@ -103,6 +112,7 @@ public class NoteServiceImplement implements NoteService {
                 note.getUpdatedAt());
     }
     @Override
+    @Transactional
     public Note create(String title, String content, UUID topicId, Optional<UUID> parentId) {
         User currentUser = authService.authUser();
         Topic topic = topicRepository.findById(topicId)
@@ -127,7 +137,9 @@ public class NoteServiceImplement implements NoteService {
         note.setTopic(topic);
         note.setParent(parent);
         note.setCreator(currentUser);
-        return noteRepository.save(note);
+        Note saved = noteRepository.save(note);
+        touchContainerActivity(topic);
+        return saved;
     }
 
     private String buildEmbeddingText(String title, String content, String topicName, String parentName) {
@@ -155,6 +167,7 @@ public class NoteServiceImplement implements NoteService {
     }
 
     @Override
+    @Transactional
     public Note update(UUID id, String title, String content, UUID topicId, Optional<UUID> parentId) {
         User currentUser = authService.authUser();
 
@@ -189,10 +202,13 @@ public class NoteServiceImplement implements NoteService {
         note.setParent(parent);
         note.setEmbedding(embedding);
 
-        return noteRepository.save(note);
+        Note saved = noteRepository.save(note);
+        touchContainerActivity(topic);
+        return saved;
     }
 
     @Override
+    @Transactional
     public void delete(UUID id) {
         User currentUser = authService.authUser();
         Note note = noteRepository.findByIdAndDeletedAtIsNull(id)
@@ -200,11 +216,31 @@ public class NoteServiceImplement implements NoteService {
         note.setDeletedBy(currentUser);
         note.setDeletedAt(LocalDateTime.now());
         noteRepository.save(note);
+
+        if (note.getTopic() != null) {
+            touchContainerActivity(note.getTopic());
+        }
     }
 
     @Override
     public Note getNoteById(UUID id) {
         return noteRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Note not found with id: " + id));
+    }
+
+    private void touchContainerActivity(Topic topic) {
+        if (topic == null) {
+            return;
+        }
+        Group group = topic.getGroup();
+        if (group == null) {
+            return;
+        }
+        Space space = group.getSpace();
+        LocalDateTime now = LocalDateTime.now();
+        groupRepository.touchLastActivityAt(group.getId(), now);
+        if (space != null) {
+            spaceRepository.touchLastActivityAt(space.getId(), now);
+        }
     }
 }

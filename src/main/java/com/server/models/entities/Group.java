@@ -43,6 +43,9 @@ public class Group extends Timestamp {
     @JoinColumn(name = "space_id")
     private Space space;
 
+    @Column(name = "last_activity_at", nullable = true)
+    private LocalDateTime lastActivityAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by",nullable = true)
     @JsonIgnore
