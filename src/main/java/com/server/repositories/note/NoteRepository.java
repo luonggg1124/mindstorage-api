@@ -19,18 +19,20 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
   java.util.Optional<Note> findByIdAndDeletedAtIsNull(UUID id);
 
   @Query(value = """
-      SELECT *
-      FROM notes
-      WHERE topic_id = :topicId
-      AND deleted_at IS NULL AND parent_id IS NULL
+      SELECT n.*
+      FROM notes n
+      WHERE n.topic_id = :topicId
+        AND n.deleted_at IS NULL
+        AND n.parent_id IS NULL
       ORDER BY
-        CASE WHEN coalesce(:embedding, '') = '' THEN created_at END DESC,
-        CASE WHEN coalesce(:embedding, '') <> '' THEN embedding <-> CAST(:embedding AS vector) END ASC
+        CASE WHEN coalesce(:embedding, '') = '' THEN n.created_at END DESC,
+        CASE WHEN coalesce(:embedding, '') <> '' THEN n.embedding <-> CAST(:embedding AS vector) END ASC
       """, countQuery = """
       SELECT COUNT(*)
-      FROM notes
-      WHERE topic_id = :topicId
-      AND deleted_at IS NULL AND parent_id IS NULL
+      FROM notes n
+      WHERE n.topic_id = :topicId
+        AND n.deleted_at IS NULL
+        AND n.parent_id IS NULL
       """, nativeQuery = true)
   Page<Note> notesByTopic(@Param("topicId") UUID topicId, @Param("embedding") String embedding, Pageable pageable);
 

@@ -1,16 +1,23 @@
 package com.server.services.attachment;
 
 import java.time.Duration;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.server.constants.R2Clouflare;
 import com.server.models.entities.Attachment;
 import com.server.models.entities.User;
 import com.server.repositories.attachment.AttachmentRepository;
+import com.server.services.attachment.dto.MyAttachmentDto;
+import com.server.services.attachment.dto.MyAttachmentsTotalSizeDto;
 import com.server.services.attachment.dto.PresignedUploadDto;
 import com.server.services.auth.AuthService;
+import com.server.services.others.data.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -66,7 +73,34 @@ public class AttachmentServiceImplement implements AttachmentService {
         attachment.setMimeType(mimeType);
         attachment.setFileSize(fileSize);
         return attachmentRepository.save(attachment);
-       
+    }
+
+    @Override
+    public PageResponse<MyAttachmentDto> myAttachments(Integer page, Integer size) {
+        User user = authService.authUser();
+        int pageIndex = page == null ? 0 : Math.max(page - 1, 0);
+        int pageSize = size == null ? 10 : size;
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        Page<Attachment> attachments = attachmentRepository.findByCreatorIdOrderByCreatedAtDesc(user.getId(), pageable);
+        List<MyAttachmentDto> data = attachments.getContent().stream()
+                .map(a -> new MyAttachmentDto(
+                        a.getId(),
+                        a.getFileKey(),
+                        a.getFileUrl(),
+                        a.getOriginalName(),
+                        a.getMimeType(),
+                        a.getFileSize(),
+                        a.getCreatedAt(),
+                        a.getUpdatedAt()))
+                .toList();
+        return new PageResponse<>(data, attachments.getTotalElements(), attachments.getNumber() + 1, attachments.getSize());
+    }
+
+    @Override
+    public MyAttachmentsTotalSizeDto myAttachmentsTotalSize() {
+        User user = authService.authUser();
+        long total = attachmentRepository.sumFileSizeByCreatorId(user.getId());
+        return new MyAttachmentsTotalSizeDto(total);
     }
 
 }

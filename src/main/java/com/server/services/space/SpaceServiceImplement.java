@@ -8,14 +8,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import com.server.exceptions.BadRequestException;
+import com.server.exceptions.ConflictException;
 import com.server.exceptions.NotFoundException;
 import com.server.models.entities.Space;
 import com.server.models.entities.SpaceMember;
 import com.server.models.entities.User;
+import com.server.models.enums.InvitationType;
 import com.server.models.enums.RoleAction;
 import com.server.repositories.group.GroupRepository;
 import com.server.repositories.space.SpaceMemberRepository;
@@ -23,11 +27,14 @@ import com.server.repositories.space.SpaceRepository;
 import com.server.repositories.user.UserRepository;
 import com.server.services.attachment.AttachmentService;
 import com.server.services.auth.AuthService;
+import com.server.services.notification.NotificationService;
 import com.server.services.others.data.dto.PageResponse;
 import com.server.services.space.dto.DetailSpaceDto;
 import com.server.services.space.dto.MySpaceDto;
+import com.server.services.space.dto.MySpaceRoleDto;
 import com.server.services.space.dto.SpaceMemberUserDto;
 import com.server.services.user.dto.SimpleUserDto;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +49,8 @@ public class SpaceServiceImplement implements SpaceService {
     private final SpaceMemberRepository spaceMemberRepository;
     private final UserRepository userRepository;
     private final AttachmentService fileService;
+    private final NotificationService notificationService;
+
     @Override
     public PageResponse<MySpaceDto> mySpaces(String q, Integer page, Integer size) {
         User currentUser = authService.authUser();
@@ -87,7 +96,7 @@ public class SpaceServiceImplement implements SpaceService {
                         s.getId(),
                         s.getName(),
                         s.getDescription(),
-                        s.getImageUrl(),
+                        fileService.buildPublicUrl(s.getImageFileKey()),
                         groupCounts.getOrDefault(s.getId(), 0L),
                         s.getCreator() == null ? null : ownersById.get(s.getCreator().getId()),
                         s.getCreator() != null && currentUser.getId().equals(s.getCreator().getId())
@@ -106,9 +115,28 @@ public class SpaceServiceImplement implements SpaceService {
     public DetailSpaceDto detail(UUID id) {
         Space space = spaceRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy không gian"));
-        DetailSpaceDto detailSpaceDto = new DetailSpaceDto(space.getId(), space.getName(), space.getDescription(),
-                space.getImageUrl(), space.getCreatedAt(), space.getUpdatedAt());
-        return detailSpaceDto;
+        return new DetailSpaceDto(
+                space.getId(),
+                space.getName(),
+                space.getDescription(),
+                fileService.buildPublicUrl(space.getImageFileKey()),
+                space.getCreatedAt(),
+                space.getUpdatedAt());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MySpaceRoleDto myRoleInSpace(UUID spaceId) {
+        User currentUser = authService.authUser();
+        Space space = spaceRepository.findByIdAndDeletedAtIsNull(spaceId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy không gian"));
+        if (space.getCreator() != null && space.getCreator().getId().equals(currentUser.getId())) {
+            return new MySpaceRoleDto(RoleAction.OWNER);
+        }
+        RoleAction role = spaceMemberRepository.findBySpace_IdAndUser_Id(spaceId, currentUser.getId())
+                .map(SpaceMember::getRole)
+                .orElseThrow(() -> new ConflictException("Bạn không thuộc không gian này", "spaceId"));
+        return new MySpaceRoleDto(role);
     }
 
     // Create
@@ -183,5 +211,53 @@ public class SpaceServiceImplement implements SpaceService {
         return new PageResponse<>(data, members.getTotalElements(), members.getNumber() + 1, members.getSize());
     }
 
-    //
+    @Override
+    @Transactional
+    public SpaceMemberUserDto changeMemberRole(UUID spaceId, Long memberUserId, RoleAction newRole) {
+        User actor = authService.authUser();
+        Space space = spaceRepository.findByIdAndDeletedAtIsNull(spaceId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy không gian"));
+        if (!canManageSpaceRoles(actor, space)) {
+            throw new ConflictException("Không có quyền thay đổi vai trò", "role");
+        }
+        SpaceMember member = spaceMemberRepository.findBySpace_IdAndUser_Id(spaceId, memberUserId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy thành viên"));
+        RoleAction previous = member.getRole();
+        if (previous == newRole) {
+            throw new BadRequestException("Vai trò không thay đổi", "role");
+        }
+        member.setRole(newRole);
+        spaceMemberRepository.save(member);
+
+        User target = member.getUser();
+        notificationService.upsertRoleChangeNotification(
+                memberUserId,
+                InvitationType.SPACE,
+                spaceId,
+                space.getName(),
+                previous,
+                newRole,
+                memberUserId,
+                target.getFullName(),
+                actor.getId(),
+                actor.getFullName());
+
+        return new SpaceMemberUserDto(
+                target.getId(),
+                target.getUsername(),
+                fileService.buildPublicUrl(target.getAvatarFileKey()),
+                target.getFullName(),
+                target.getGender(),
+                member.getCreatedAt(),
+                member.getRole());
+    }
+
+    private boolean canManageSpaceRoles(User actor, Space space) {
+        if (space.getCreator() != null && space.getCreator().getId().equals(actor.getId())) {
+            return true;
+        }
+        return spaceMemberRepository.findBySpace_IdAndUser_Id(space.getId(), actor.getId())
+                .map(sm -> sm.getRole() == RoleAction.OWNER)
+                .orElse(false);
+    }
 }

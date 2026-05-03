@@ -1,6 +1,7 @@
 package com.server.models.entities;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -36,18 +37,9 @@ public class Notification extends Timestamp {
     @Column(name = "sender_id", nullable = false)
     private Long senderId;
 
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
-
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private String data;
-
-    @Column(name = "entity_id", nullable = false)
-    private UUID entityId;
+    @Column(name = "data", columnDefinition = "jsonb")
+    private Map<String, Object> data;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead;

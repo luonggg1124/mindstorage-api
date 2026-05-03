@@ -1,6 +1,7 @@
 package com.server.services.notification.dto;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import com.server.models.enums.NotificationType;
@@ -16,12 +17,10 @@ public class MyNotificationDto {
     private UUID id;
     private Long userId;
     private Long senderId;
-    private String title;
-    private String content;
     private NotificationType type;
-    private String data;
+    private Map<String, Object> data;
     private boolean isRead;
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
-    
+
 }

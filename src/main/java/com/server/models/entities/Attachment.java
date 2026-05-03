@@ -11,7 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import org.hibernate.annotations.UuidGenerator;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +22,7 @@ public class Attachment extends Timestamp {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
 
     @Column(name = "file_key", nullable = false)
     private String fileKey;

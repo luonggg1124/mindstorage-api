@@ -1,10 +1,12 @@
 package com.server.repositories.notification;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,14 +17,30 @@ import com.server.models.entities.Notification;
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
     @Query(value = """
+            select n.*
+            from notifications n
+            where n.user_id = :userId
+              and n.type = cast(:type as text)
+              and n.deleted_at is null
+              and n.created_at >= :createdAtMin
+              and n.data ->> 'entityId' = cast(:entityId as text)
+            order by n.created_at desc
+            """, nativeQuery = true)
+    List<Notification> findLatestForDedup(
+            @Param("userId") Long userId,
+            @Param("type") String type,
+            @Param("entityId") UUID entityId,
+            @Param("createdAtMin") LocalDateTime createdAtMin,
+            Pageable pageable);
+
+    @Query(value = """
                 select *
                 from notifications
                 where user_id = :userId
                   and deleted_at is null
                   and (
                     coalesce(:q, '') = ''
-                    or title ilike concat('%', :q, '%')
-                    or content ilike concat('%', :q, '%')
+                    or cast(data as text) ilike concat('%', :q, '%')
                   )
                 order by created_at desc
             """, nativeQuery = true)

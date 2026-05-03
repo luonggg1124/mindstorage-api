@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.HtmlUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -152,6 +153,15 @@ public class DataServiceImplement implements DataService {
         return "[" + IntStream.range(0, embedding.length)
                 .mapToObj(i -> Float.toString(embedding[i]))
                 .collect(Collectors.joining(",")) + "]";
+    }
+
+    @Override
+    public Map<String, Object> objectToMap(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return objectMapper.convertValue(value, new TypeReference<Map<String, Object>>() {
+        });
     }
 
 }

@@ -1,6 +1,7 @@
 package com.server.repositories.space;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,8 @@ import com.server.models.entities.SpaceMember;
 public interface SpaceMemberRepository extends JpaRepository<SpaceMember, UUID> {
     long countByUser_IdAndSpace_DeletedAtIsNull(Long userId);
     boolean existsByUserIdAndSpaceId(Long userId, UUID spaceId);
+
+    Optional<SpaceMember> findBySpace_IdAndUser_Id(UUID spaceId, Long userId);
 
     @Query("""
             select sm.user.id

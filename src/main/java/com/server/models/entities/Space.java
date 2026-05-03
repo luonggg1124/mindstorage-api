@@ -8,10 +8,13 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.server.models.enums.RoleAction;
 import com.server.models.extend.Timestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,11 +44,19 @@ public class Space extends Timestamp {
     @Column(name = "description", nullable = true)
     private String description;
 
-    @Column(name = "image_url", nullable = true)
-    private String imageUrl;
+    @Column(name = "image_file_key", nullable = true)
+    private String imageFileKey;
 
     @Column(name="deleted_at",nullable = true)
     private LocalDateTime deletedAt;
+
+    @Column(name = "visibility", nullable = false)
+    private String visibility;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility_role", nullable = false)
+    private RoleAction visibilityRole;
     
     @OneToMany(mappedBy = "space", fetch = FetchType.LAZY)
     @JsonIgnore

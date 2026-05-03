@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,11 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.server.controllers.space.request.CreateSpaceRequest;
+import com.server.controllers.space.request.UpdateSpaceMemberRoleRequest;
 import com.server.controllers.space.response.CreateSpaceResponse;
 import com.server.models.entities.Space;
 import com.server.services.others.data.dto.PageResponse;
 import com.server.services.space.dto.DetailSpaceDto;
 import com.server.services.space.dto.MySpaceDto;
+import com.server.services.space.dto.MySpaceRoleDto;
 import com.server.services.space.dto.SpaceMemberUserDto;
 import com.server.services.space.SpaceService;
 
@@ -45,6 +48,11 @@ public class SpaceController {
             @PathVariable UUID id) {
         DetailSpaceDto space = spaceService.detail(id);
         return ResponseEntity.ok(space);
+    }
+
+    @GetMapping("/{id}/my-role")
+    public ResponseEntity<MySpaceRoleDto> myRoleInSpace(@PathVariable UUID id) {
+        return ResponseEntity.ok(spaceService.myRoleInSpace(id));
     }
 
     // CREATE
@@ -89,6 +97,14 @@ public class SpaceController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         return ResponseEntity.ok(spaceService.members(id, q, page, size));
+    }
+
+    @PatchMapping("/{spaceId}/members/{userId}/role")
+    public ResponseEntity<SpaceMemberUserDto> updateMemberRole(
+            @PathVariable UUID spaceId,
+            @PathVariable Long userId,
+            @Valid @RequestBody UpdateSpaceMemberRoleRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(spaceService.changeMemberRole(spaceId, userId, request.getRole()));
     }
 
 }

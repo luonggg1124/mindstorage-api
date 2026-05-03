@@ -21,6 +21,7 @@ import com.server.models.enums.InvitationType;
 import com.server.models.enums.NotificationType;
 import com.server.models.enums.RoleAction;
 import com.server.repositories.invitation.InvitationRepository;
+import com.server.repositories.notification.json.InvitationNotificationData;
 import com.server.repositories.group.GroupMemberRepository;
 import com.server.repositories.group.GroupRepository;
 import com.server.repositories.space.SpaceMemberRepository;
@@ -86,28 +87,18 @@ public class InvitationServiceImplement implements InvitationService {
         Invitation savedInvitation = invitationRepository.save(invitation);
 
         String entityName = resolveEntityName(entityId, entityType);
-        String inviterName = resolveInviterName(user);
 
-        String title = buildTitle(entityType);
-        String content = buildContent(entityType, entityName, inviterName);
-        NotificationType notificationType = entityType == InvitationType.GROUP
-                ? NotificationType.INVITE_TO_JOIN_GROUP
-                : NotificationType.INVITE_TO_JOIN_SPACE;
-        Map<String, Object> data = Map.of(
-                "invitationId", savedInvitation.getId(),
-                "invitationStatus", savedInvitation.getStatus(),
-                "entityId", entityId,
-                "entityType", entityType,
-                "entityName", entityName,
-                "senderId", user.getId(),
-                "senderName", user.getFullName());
         Notification notification = notificationService.create(
                 savedInvitation.getInviteeId(),
-                title,
-                content,
-                data,
-                notificationType,
-                entityId);
+                InvitationNotificationData.toMap(
+                        savedInvitation.getId(),
+                        savedInvitation.getStatus(),
+                        entityId,
+                        entityType,
+                        entityName,
+                        user.getId(),
+                        user.getFullName()),
+                NotificationType.INVITE);
 
         notificationService.sendNotification(savedInvitation.getInviteeId(), notification);
     }
@@ -181,29 +172,6 @@ public class InvitationServiceImplement implements InvitationService {
                 "type", InvitationStatus.REJECTED,
                 "invitationId", inv.getId()));
 
-    }
-
-    private String buildTitle(InvitationType entityType) {
-        return entityType == InvitationType.GROUP
-                ? "Lời mời vào nhóm"
-                : "Lời mời vào không gian";
-    }
-
-    private String buildContent(InvitationType entityType, String entityName, String inviterName) {
-        String typeText = entityType == InvitationType.GROUP ? "nhóm" : "không gian";
-        String nameText = (entityName == null || entityName.isBlank()) ? "" : (" " + entityName.trim());
-        String fromText = (inviterName == null || inviterName.isBlank()) ? "" : (" từ " + inviterName.trim());
-        return "Bạn có lời mời vào " + typeText + nameText + fromText;
-    }
-
-    private String resolveInviterName(User inviter) {
-        if (inviter == null) {
-            return null;
-        }
-        if (inviter.getFullName() != null && !inviter.getFullName().isBlank()) {
-            return inviter.getFullName();
-        }
-        return inviter.getUsername();
     }
 
     private String resolveEntityName(UUID entityId, InvitationType entityType) {
