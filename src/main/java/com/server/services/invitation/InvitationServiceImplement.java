@@ -123,6 +123,7 @@ public class InvitationServiceImplement implements InvitationService {
         inv.setRespondedAt(respondedAt);
         invitationRepository.save(inv);
         notificationService.updateInvitationStatusData(inv.getId(), inv.getStatus(), respondedAt);
+        String entityName = resolveEntityName(inv.getEntityId(), inv.getType());
 
         switch (inv.getType()) {
             case GROUP -> {
@@ -144,11 +145,17 @@ public class InvitationServiceImplement implements InvitationService {
                 spaceMemberRepository.save(spaceMember);
             }
         }
-        notificationService.sendNotification(inv.getInviterId(),
-                Map.of(
-                        "type", InvitationStatus.ACCEPTED,
-                        "invitationId", inv.getId(),
-                        "userId", user.getId()));
+        Map<String, Object> data = InvitationNotificationData.toMap(
+                inv.getId(),
+                inv.getStatus(),
+                inv.getEntityId(),
+                inv.getType(),
+                entityName,
+                user.getId(),
+                user.getFullName());
+        data.put("respondedAt", respondedAt.toString());
+        Notification notification = notificationService.create(inv.getInviterId(), data, NotificationType.INVITE);
+        notificationService.sendNotification(inv.getInviterId(), notification);
     }
 
     @Transactional
@@ -168,9 +175,18 @@ public class InvitationServiceImplement implements InvitationService {
         inv.setRespondedAt(respondedAt);
         invitationRepository.save(inv);
         notificationService.updateInvitationStatusData(inv.getId(), inv.getStatus(), respondedAt);
-        notificationService.sendNotification(inv.getInviterId(), Map.of(
-                "type", InvitationStatus.REJECTED,
-                "invitationId", inv.getId()));
+        String entityName = resolveEntityName(inv.getEntityId(), inv.getType());
+        Map<String, Object> data = InvitationNotificationData.toMap(
+                inv.getId(),
+                inv.getStatus(),
+                inv.getEntityId(),
+                inv.getType(),
+                entityName,
+                user.getId(),
+                user.getFullName());
+        data.put("respondedAt", respondedAt.toString());
+        Notification notification = notificationService.create(inv.getInviterId(), data, NotificationType.INVITE);
+        notificationService.sendNotification(inv.getInviterId(), notification);
 
     }
 

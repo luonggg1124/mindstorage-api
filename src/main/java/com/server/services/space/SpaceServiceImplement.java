@@ -21,6 +21,7 @@ import com.server.models.entities.SpaceMember;
 import com.server.models.entities.User;
 import com.server.models.enums.InvitationType;
 import com.server.models.enums.RoleAction;
+import com.server.models.enums.SpaceVisibility;
 import com.server.repositories.group.GroupRepository;
 import com.server.repositories.space.SpaceMemberRepository;
 import com.server.repositories.space.SpaceRepository;
@@ -147,6 +148,8 @@ public class SpaceServiceImplement implements SpaceService {
         space.setName(name);
         space.setDescription(description);
         space.setCreator(currentUser);
+        space.setVisibility(SpaceVisibility.PUBLIC);
+        space.setVisibilityRole(RoleAction.VIEWER);
         return spaceRepository.save(space);
     }
 

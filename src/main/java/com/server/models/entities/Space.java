@@ -4,11 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.enums.RoleAction;
+import com.server.models.enums.SpaceVisibility;
 import com.server.models.extend.Timestamp;
 
 import jakarta.persistence.Column;
@@ -22,6 +20,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +50,8 @@ public class Space extends Timestamp {
     private LocalDateTime deletedAt;
 
     @Column(name = "visibility", nullable = false)
-    private String visibility;
+    @Enumerated(EnumType.STRING)
+    private SpaceVisibility visibility;
 
 
     @Enumerated(EnumType.STRING)
@@ -73,4 +73,14 @@ public class Space extends Timestamp {
     @JoinColumn(name = "deleted_by",nullable = true)
     @JsonIgnore
     private User deletedBy;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.visibility == null) {
+            this.visibility = SpaceVisibility.PUBLIC;
+        }
+        if (this.visibilityRole == null) {
+            this.visibilityRole = RoleAction.VIEWER;
+        }
+    }
 }
