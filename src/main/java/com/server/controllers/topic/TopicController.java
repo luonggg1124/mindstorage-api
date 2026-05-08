@@ -1,9 +1,11 @@
 package com.server.controllers.topic;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,11 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.server.controllers.topic.request.CreateTopicRequest;
 import com.server.controllers.topic.response.CreateTopicResponse;
 import com.server.models.entities.Topic;
-import com.server.repositories.topic.dto.TopicByGroupDto;
+import com.server.services.topic.dto.TopicByGroupDto;
 import com.server.services.topic.TopicService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,7 +31,7 @@ public class TopicController {
 
     @GetMapping("/by-group/{id}")
     public ResponseEntity<List<TopicByGroupDto>> getTopicsByGroup(
-            @PathVariable @Positive(message = "Url không hợp lệ") Long id) {
+            @PathVariable UUID id) {
         List<TopicByGroupDto> topics = topicService.getTopicsByGroup(id);
         return ResponseEntity.status(HttpStatus.OK).body(topics);
     }
@@ -49,7 +50,7 @@ public class TopicController {
 
     @PutMapping("/{id}")
     public ResponseEntity<CreateTopicResponse> update(
-            @PathVariable @Positive(message = "Url không hợp lệ") Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody CreateTopicRequest request) {
         Topic topic = topicService.update(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(new CreateTopicResponse(
@@ -58,5 +59,11 @@ public class TopicController {
                 topic.getGroup().getId(),
                 topic.getCreatedAt(),
                 topic.getUpdatedAt()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
+        topicService.delete(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

@@ -7,8 +7,9 @@ import com.server.services.group.dto.DetailGroupDto;
 import com.server.services.group.dto.GroupBySpaceDto;
 import com.server.services.others.data.dto.PageResponse;
 
+import java.util.UUID;
+
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class GroupController {
 
     @GetMapping("/by-space/{id}")
     public ResponseEntity<PageResponse<GroupBySpaceDto>> getGroupsBySpace(
-            @PathVariable @Positive(message = "Url không hợp lệ") Long id,
+            @PathVariable UUID id,
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
@@ -34,7 +35,7 @@ public class GroupController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DetailGroupDto> detailGroup(@PathVariable @Positive(message = "Url không hợp lệ") Long id) {
+    public ResponseEntity<DetailGroupDto> detailGroup(@PathVariable UUID id) {
         DetailGroupDto group = groupService.detailGroup(id);
         return ResponseEntity.status(HttpStatus.OK).body(group);
     }
@@ -49,7 +50,7 @@ public class GroupController {
 
     @PutMapping("/{id}")
     public ResponseEntity<CreateGroupResponse> update(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody CreateGroupRequest request) {
         Group group = groupService.update(id, request.getName(), request.getDescription(), request.getSpaceId());
         return ResponseEntity.status(HttpStatus.OK).body(new CreateGroupResponse(
@@ -61,7 +62,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
         groupService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

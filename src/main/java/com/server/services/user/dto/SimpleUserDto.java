@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class SimpleUserDto {
     private Long id;
     private String username;
-    private String email;
     private String avatarUrl;
     private String fullName;
     private UserGender gender;

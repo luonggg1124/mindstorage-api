@@ -47,8 +47,8 @@ public class User extends Timestamp {
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
 
-    @Column(name = "avatar_url", nullable = true)
-    private String avatarUrl;
+    @Column(name = "avatar_file_key", nullable = true)
+    private String avatarFileKey;
 
     @Column(name = "provider_id", nullable = true)
     private String providerId;

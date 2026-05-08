@@ -1,8 +1,3 @@
-
-
-
-
-
 --index for note search by embedding , ex: ORDER BY embedding <=> :vector 
 -- vector search
 CREATE INDEX idx_notes_embedding_active

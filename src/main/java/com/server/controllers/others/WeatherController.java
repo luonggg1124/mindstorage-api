@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,18 +15,22 @@ import com.server.controllers.others.request.GetWeatherRequest;
 import com.server.controllers.others.response.GetWeatherResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.validation.annotation.Validated;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/weather")
 @Slf4j
+@Validated
 public class WeatherController {
     @Value("${weather.api.key}")
     private String weatherApiKey;
     @Value("${weather.api.url}")
     private String weatherApiUrl;
     @GetMapping
-    public ResponseEntity<GetWeatherResponse> getWeather(@Valid @RequestBody GetWeatherRequest request) {
+    public ResponseEntity<GetWeatherResponse> getWeather(
+            @Valid GetWeatherRequest request) {
 
         StringBuilder locationUrl = new StringBuilder();
         locationUrl.append("https://api.bigdatacloud.net/data/reverse-geocode-client");
@@ -43,7 +47,7 @@ public class WeatherController {
         url.append(weatherApiUrl);
         url.append("?key=").append(weatherApiKey);
         url.append("&q=").append(request.getLatitude()).append(",").append(request.getLongitude());
-        url.append("&lang=").append("vi");
+        url.append("&lang=").append(request.getLang() != null ? request.getLang() : "vi");
         RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.getForObject(url.toString(), String.class);
        

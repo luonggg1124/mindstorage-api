@@ -1,8 +1,9 @@
 package com.server.controllers.topic.request;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,5 @@ public class CreateTopicRequest {
     private String name;
 
     @NotNull(message = "groupId không được để trống")
-    @Positive(message = "groupId không hợp lệ.")
-    private Long groupId;
+    private UUID groupId;
 }

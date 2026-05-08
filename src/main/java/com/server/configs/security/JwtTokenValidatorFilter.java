@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.server.cache.AuthCache;
+import com.server.constants.AuthCache;
 import com.server.models.entities.User;
 import com.server.services.auth.AuthService;
 
@@ -74,9 +74,7 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                // Get user from service (will get from cache or database and cache it)
                 User user = authService.userFromToken(token);
-
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {

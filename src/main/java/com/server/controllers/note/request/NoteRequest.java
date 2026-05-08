@@ -1,8 +1,9 @@
 package com.server.controllers.note.request;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,8 +17,7 @@ public class NoteRequest {
     private String content;
 
     @NotNull(message = "Chủ đề không được để trống")
-    @Positive(message = "Chủ đề không hợp lệ.")
-    private Long topicId;
+    private UUID topicId;
 
-    private Long parentId;
+    private UUID parentId;
 }

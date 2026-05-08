@@ -2,9 +2,9 @@ package com.server.models.entities;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.models.extend.Timestamp;
@@ -30,8 +30,8 @@ import lombok.Setter;
 @Table(name = "topics")
 public class Topic extends Timestamp {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name;

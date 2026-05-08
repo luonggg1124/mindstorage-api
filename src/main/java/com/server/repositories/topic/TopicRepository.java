@@ -2,40 +2,35 @@ package com.server.repositories.topic;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.server.models.entities.Topic;
-import com.server.repositories.topic.dto.TopicByGroupDto;
 
-public interface TopicRepository extends JpaRepository<Topic, Long> {
+public interface TopicRepository extends JpaRepository<Topic, UUID> {
 
-    @Query("""
-            select new com.server.repositories.topic.dto.TopicByGroupDto(
-                t.id,
-                t.name,
-                t.createdAt,
-                t.updatedAt
-            )
-            from com.server.models.entities.Topic t
-            where t.group.id = :groupId
-              and t.deletedAt is null
-            order by t.createdAt desc
-            """)
-    List<TopicByGroupDto> findTopicsByGroup(@Param("groupId") Long groupId);
+    @Query(value = """
+            select *
+            from topics
+            where group_id = :groupId
+              and deleted_at is null
+            order by created_at desc
+            """, nativeQuery = true)
+    List<Topic> findTopicsByGroup(@Param("groupId") UUID groupId);
 
-    boolean existsByIdAndDeletedAtIsNull(Long id);
+    boolean existsByIdAndDeletedAtIsNull(UUID id);
 
-    Optional<Topic> findByIdAndDeletedAtIsNull(Long id);
+    Optional<Topic> findByIdAndDeletedAtIsNull(UUID id);
 
-    @Query("""
-            select t.group.id, count(t.id)
-            from com.server.models.entities.Topic t
-            where t.group.id in :groupIds
-              and t.deletedAt is null
-            group by t.group.id
-            """)
-    List<Object[]> countByGroupIds(@Param("groupIds") List<Long> groupIds);
+    @Query(value = """
+            select group_id, count(id)
+            from topics
+            where group_id in (:groupIds)
+              and deleted_at is null
+            group by group_id
+            """, nativeQuery = true)
+    List<Object[]> countByGroupIds(@Param("groupIds") List<UUID> groupIds);
 }

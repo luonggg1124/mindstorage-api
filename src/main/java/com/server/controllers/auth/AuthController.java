@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.server.cache.AuthCache;
+
+import com.server.constants.AuthCache;
 import com.server.controllers.auth.request.LoginRequest;
 import com.server.controllers.auth.request.RefreshTokenRequest;
 import com.server.controllers.auth.request.RegisterRequest;
