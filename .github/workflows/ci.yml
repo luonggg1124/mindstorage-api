@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-java@v4
         with: 
           java-version: "25"
-      
+          distribution: 'temurin'
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -37,4 +37,4 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean install
       
-      
+
