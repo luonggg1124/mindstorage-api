@@ -10,11 +10,11 @@ CREATE INDEX idx_space_members_user_id ON space_members(user_id);
 CREATE UNIQUE INDEX idx_space_members_unique ON space_members(space_id, user_id);
 
 
-CREATE INDEX idx_followers_follower_id ON followers(follower_id);
-CREATE INDEX idx_followers_following_id ON followers(following_id);
+CREATE INDEX idx_follows_follower_id ON follows(follower_id);
+CREATE INDEX idx_follows_following_id ON follows(following_id);
 
 
-CREATE UNIQUE INDEX idx_followers_unique ON followers(follower_id, following_id);
+CREATE UNIQUE INDEX idx_follows_unique ON follows(follower_id, following_id);
 
 CREATE UNIQUE INDEX uk_invite_pending ON invitations(invitee_id, entity_id,entity_type) WHERE status = 'PENDING';
 

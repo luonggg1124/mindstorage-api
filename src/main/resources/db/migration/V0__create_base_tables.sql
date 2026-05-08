@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at      TIMESTAMP NULL
 );
 
+-- match `@Column(... unique = true)` in User entity
+CREATE UNIQUE INDEX IF NOT EXISTS uk_users_username ON users(username);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_users_email ON users(email);
+
 CREATE TABLE IF NOT EXISTS spaces (
     id               UUID PRIMARY KEY,
     name             TEXT NOT NULL,
@@ -34,7 +38,9 @@ CREATE TABLE IF NOT EXISTS spaces (
     last_activity_at TIMESTAMP NULL,
     deleted_by       BIGINT NULL,
     created_at       TIMESTAMP NULL,
-    updated_at       TIMESTAMP NULL
+    updated_at       TIMESTAMP NULL,
+    CONSTRAINT fk_spaces_creator_id FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_spaces_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS groups (
@@ -46,7 +52,9 @@ CREATE TABLE IF NOT EXISTS groups (
     last_activity_at TIMESTAMP NULL,
     deleted_by       BIGINT NULL,
     created_at       TIMESTAMP NULL,
-    updated_at       TIMESTAMP NULL
+    updated_at       TIMESTAMP NULL,
+    CONSTRAINT fk_groups_space_id FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE SET NULL,
+    CONSTRAINT fk_groups_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS topics (
@@ -56,7 +64,9 @@ CREATE TABLE IF NOT EXISTS topics (
     deleted_at TIMESTAMP NULL,
     deleted_by BIGINT NULL,
     created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL,
+    CONSTRAINT fk_topics_group_id FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE SET NULL,
+    CONSTRAINT fk_topics_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS notes (
@@ -70,7 +80,11 @@ CREATE TABLE IF NOT EXISTS notes (
     creator_id BIGINT NULL,
     deleted_by BIGINT NULL,
     created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL,
+    CONSTRAINT fk_notes_topic_id FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE SET NULL,
+    CONSTRAINT fk_notes_parent_id FOREIGN KEY (parent_id) REFERENCES notes(id) ON DELETE SET NULL,
+    CONSTRAINT fk_notes_creator_id FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_notes_deleted_by FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS space_members (
@@ -79,7 +93,20 @@ CREATE TABLE IF NOT EXISTS space_members (
     user_id    BIGINT NOT NULL,
     role       TEXT NOT NULL,
     created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL,
+    CONSTRAINT fk_space_members_space_id FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+    CONSTRAINT fk_space_members_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS group_members (
+    id         UUID PRIMARY KEY,
+    group_id   UUID NOT NULL,
+    user_id    BIGINT NOT NULL,
+    role       TEXT NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    CONSTRAINT fk_group_members_group_id FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    CONSTRAINT fk_group_members_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS invitations (
@@ -87,11 +114,12 @@ CREATE TABLE IF NOT EXISTS invitations (
     inviter_id   BIGINT NOT NULL,
     invitee_id   BIGINT NOT NULL,
     entity_id    UUID NOT NULL,
-    entity_type  TEXT NULL,
     type         TEXT NOT NULL,
     status       TEXT NOT NULL,
     created_at   TIMESTAMP NOT NULL,
-    responded_at TIMESTAMP NULL
+    responded_at TIMESTAMP NULL,
+    CONSTRAINT fk_invitations_inviter_id FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_invitations_invitee_id FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
@@ -104,7 +132,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     deleted_at TIMESTAMP NULL,
     type       TEXT NOT NULL,
     created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL,
+    CONSTRAINT fk_notifications_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_notifications_sender_id FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS attachments (
@@ -116,6 +146,17 @@ CREATE TABLE IF NOT EXISTS attachments (
     file_size     BIGINT NOT NULL,
     creator_id    BIGINT NULL,
     created_at    TIMESTAMP NULL,
-    updated_at    TIMESTAMP NULL
+    updated_at    TIMESTAMP NULL,
+    CONSTRAINT fk_attachments_creator_id FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS follows (
+    id           UUID PRIMARY KEY,
+    follower_id  BIGINT NOT NULL,
+    following_id BIGINT NOT NULL,
+    created_at   TIMESTAMP NULL,
+    updated_at   TIMESTAMP NULL,
+    CONSTRAINT fk_follows_follower_id FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_follows_following_id FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
