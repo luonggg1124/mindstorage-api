@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InviteUserDto {
-    private Long id;
-    private String username;
-    private String avatarUrl;
-    private String fullName;
-    private UserGender gender;
-    private boolean isMember;
-}
+    public class InviteUserDto {
+        private Long id;
+        private String username;
+        private String avatarUrl;
+        private String fullName;
+        private UserGender gender;
+        private boolean isMember;
+    }
 
