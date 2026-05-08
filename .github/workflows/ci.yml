@@ -1,0 +1,40 @@
+name: Mind Storage CI
+
+on: 
+  push: 
+    branches: 
+      - main
+  pull_request: 
+    branches: 
+      - main
+jobs: 
+  build: 
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      - name: Set up JDK 
+        uses: actions/setup-java@v4
+        with: 
+          java-version: "25"
+      
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with: 
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2
+        
+
+      - name: Grant execute permission
+        run: chmod +x mvnw
+
+
+      - name: Build with Maven
+        run: ./mvnw clean install
+      
+      
