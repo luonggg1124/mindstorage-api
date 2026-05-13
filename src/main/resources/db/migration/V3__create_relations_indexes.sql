@@ -16,13 +16,12 @@ CREATE INDEX idx_follows_following_id ON follows(following_id);
 
 CREATE UNIQUE INDEX idx_follows_unique ON follows(follower_id, following_id);
 
-CREATE UNIQUE INDEX uk_invite_pending ON invitations(invitee_id, entity_id,entity_type) WHERE status = 'PENDING';
+CREATE UNIQUE INDEX uk_invite_pending ON invitations(invitee_id, entity_id, type) WHERE status = 'PENDING';
 
-CREATE INDEX idx_invite_entity ON invitations(entity_id, entity_type);
+CREATE INDEX idx_invite_entity ON invitations(entity_id, type);
 
 CREATE INDEX idx_notifications_user_created ON notifications(user_id, created_at DESC);
 
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read);
 
 CREATE INDEX idx_notifications_data_gin ON notifications USING GIN (data);
-
