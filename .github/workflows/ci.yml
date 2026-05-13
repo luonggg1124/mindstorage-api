@@ -1,38 +1,62 @@
 name: Mind Storage CI
 
-on: 
-  push: 
-    branches: 
+on:
+  push:
+    branches:
       - main
-  pull_request: 
-    branches: 
+  pull_request:
+    branches:
       - main
-jobs: 
-  build: 
+
+jobs:
+  build:
     runs-on: ubuntu-latest
-    steps: 
+
+    services:
+      postgres_db:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: app_db
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U root -d app_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7.4.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=3
+
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-
-      - name: Set up JDK 
+      - name: Set up JDK
         uses: actions/setup-java@v4
-        with: 
+        with:
           java-version: "25"
           distribution: 'temurin'
 
       - name: Cache Maven packages
         uses: actions/cache@v4
-        with: 
+        with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-m2
-        
 
       - name: Grant execute permission
         run: chmod +x mvnw
-
 
       - name: Build with Maven
         run: ./mvnw clean install
@@ -75,4 +99,3 @@ jobs:
           CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           CLOUDFLARE_R2_BUCKET: ${{ secrets.CLOUDFLARE_R2_BUCKET }}
           CLOUDFLARE_R2_PUBLIC_URL: ${{ secrets.CLOUDFLARE_R2_PUBLIC_URL }}
-
