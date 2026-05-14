@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -60,6 +64,19 @@ jobs:
 
       - name: Build with Maven
         run: ./mvnw clean install
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build docker image
+        run: |
+          docker build \
+          -t ghcr.io/luonggg1124/mindstorage-api:latest .
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/luonggg1124/mindstorage-api:latest
         env:
           # app
           APP_PORT: ${{ secrets.APP_PORT }}
